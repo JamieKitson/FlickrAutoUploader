@@ -3,8 +3,9 @@ using System.Windows;
 using Microsoft.Phone.Scheduler;
 using Microsoft.Phone.Shell;
 using System;
-using FlickrNet;
+//using FlickrNet;
 using System.IO.IsolatedStorage;
+using PhoneClassLibrary1;
 
 namespace ScheduledTaskAgent1
 {
@@ -41,7 +42,7 @@ namespace ScheduledTaskAgent1
         /// <remarks>
         /// This method is called when a periodic or resource intensive task is invoked
         /// </remarks>
-        protected override void OnInvoke(ScheduledTask task)
+        protected override async void OnInvoke(ScheduledTask task)
         {
 
             string toastMessage = "";
@@ -57,18 +58,22 @@ namespace ScheduledTaskAgent1
             {
                 // Execute resource-intensive task actions here.
                 toastMessage = "Resource-intensive task running.";
+                await MyFlickr.Upload();
             }
+
 
             // Launch a toast to show that the agent is running.
             // The toast will not be shown if the foreground application is running.
+            /*
+
             ShellToast toast = new ShellToast();
             toast.Title = "Background Agent Sample";
             toast.Content = toastMessage;
             toast.Show();
-
+            */
             // If debugging is enabled, launch the agent again in one minute.
 //#if DEBUG_AGENT
-  ScheduledActionService.LaunchForTest(task.Name, TimeSpan.FromSeconds(10));
+  //ScheduledActionService.LaunchForTest(task.Name, TimeSpan.FromSeconds(10));
 //#endif
             NotifyComplete();
         }

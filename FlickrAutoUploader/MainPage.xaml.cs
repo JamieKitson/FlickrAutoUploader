@@ -13,6 +13,9 @@ using System.IO.IsolatedStorage;
 using Microsoft.Xna.Framework.Media;
 using Microsoft.Phone.Scheduler;
 using PhoneClassLibrary1;
+using System.Security.Cryptography;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace FlickrAutoUploader
 {
@@ -23,6 +26,7 @@ namespace FlickrAutoUploader
         ResourceIntensiveTask resourceIntensiveTask;
         string resourceIntensiveTaskName = "resourceIntensiveTaskName";
         private OAuthRequestToken requestToken = null;
+        //private FlickrResult<string> UploadResult;
         // setting keys
 /*        const string ALBUMS = "albums";
         const string TOKEN = "token";
@@ -73,10 +77,10 @@ namespace FlickrAutoUploader
                 }); 
                 
             }
-            */
             cbUploadAll.IsChecked = s.Contains(MyFlickr.UPLOAD_ALL) && (bool)s[MyFlickr.UPLOAD_ALL];
             cbUploadAll.Checked += RadioButton_Checked;
             cbUploadNew.Checked += RadioButton_Checked;
+            */
             if (ScheduledActionService.Find(resourceIntensiveTaskName) != null)
             {
                 ScheduledActionService.Remove(resourceIntensiveTaskName);
@@ -84,8 +88,9 @@ namespace FlickrAutoUploader
             resourceIntensiveTask = new ResourceIntensiveTask(resourceIntensiveTaskName);
             resourceIntensiveTask.Description = "This demonstrates a resource-intensive task.";
             ScheduledActionService.Add(resourceIntensiveTask);
-            ScheduledActionService.LaunchForTest(resourceIntensiveTaskName, TimeSpan.FromSeconds(10));
+            //ScheduledActionService.LaunchForTest(resourceIntensiveTaskName, TimeSpan.FromSeconds(10));
             LoadFolders();
+            TextBlock1.Text = Settings.StartFrom.ToString();
         }
 
 
@@ -94,8 +99,7 @@ namespace FlickrAutoUploader
 
             Flickr f = MyFlickr.getFlickr();
 
-            IsolatedStorageSettings s = IsolatedStorageSettings.ApplicationSettings;
-            if (s.Contains(MyFlickr.TOKEN) && s.Contains(MyFlickr.SECRET))
+            if (!string.IsNullOrEmpty(Settings.OAuthAccessToken + Settings.OAuthAccessTokenSecret))
             {
                 /*
                 f.OAuthAccessToken = (string)s[TOKEN];
@@ -111,8 +115,8 @@ namespace FlickrAutoUploader
 
                 return;
             }
-
-            f.OAuthGetRequestTokenAsync(callBack, (tok) =>
+                
+            f.OAuthGetRequestTokenAsync(callBack, (tok) => 
             {
                 if (tok.HasError)
                     TextBox1.Text = tok.Error.Message;
@@ -155,19 +159,21 @@ namespace FlickrAutoUploader
                         TextBox1.Text = tok.Error.Message;
                     else
                     {
+                        Settings.OAuthAccessToken = tok.Result.Token;
+                        Settings.OAuthAccessTokenSecret = tok.Result.TokenSecret;
+                        /*
                         IsolatedStorageSettings settings = IsolatedStorageSettings.ApplicationSettings;
                         settings[MyFlickr.TOKEN] = tok.Result.Token;
                         settings[MyFlickr.SECRET] = tok.Result.TokenSecret;
-                        settings.Save();
+                        settings.Save(); */
                         TextBox1.Text = tok.Result.UserId;                        
                     }
-                });
+                }); 
             }
         }
 
-        private void LoadFolders()
+        private List<string> getCheckedAlbums()
         {
-            //const int CB_HEIGHT = 50;
             IsolatedStorageSettings s = IsolatedStorageSettings.ApplicationSettings;
             List<string> checkedAlbums;
             if (s.Contains(MyFlickr.ALBUMS))
@@ -179,6 +185,13 @@ namespace FlickrAutoUploader
                 checkedAlbums = new List<string>();
                 checkedAlbums.Add("Camera Roll");
             }
+            return checkedAlbums;
+        }
+
+        private void LoadFolders()
+        {
+            //const int CB_HEIGHT = 50;
+            List<string> checkedAlbums = getCheckedAlbums();
             foreach (MediaSource source in MediaSource.GetAvailableMediaSources())
             {
                 if (source.MediaSourceType == MediaSourceType.LocalDevice)
@@ -227,13 +240,9 @@ namespace FlickrAutoUploader
 
         }
 
-        private void RadioButton_Checked(object sender, RoutedEventArgs e)
+        private async void Button_Click_1(object sender, RoutedEventArgs e)
         {
-            IsolatedStorageSettings s = IsolatedStorageSettings.ApplicationSettings;
-            if (!s.Contains(MyFlickr.UPLOAD_ALL))
-                s.Add(MyFlickr.UPLOAD_ALL, cbUploadAll.IsChecked);
-            else
-                s[MyFlickr.UPLOAD_ALL] = cbUploadAll.IsChecked;
+            await MyFlickr.Upload();
         }
     }
 }

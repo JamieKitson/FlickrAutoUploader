@@ -51,8 +51,8 @@
             <TextBox HorizontalAlignment="Left" Height="72" Margin="0,72,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="456" Name="TextBox1"/>
             <phone:WebBrowser HorizontalAlignment="Left" Margin="0,144,0,0" VerticalAlignment="Top" Height="312" Width="456" Name="WebBrowser1" Navigating="WebBrowser1_Navigating" Visibility="Collapsed"/>
             <Grid HorizontalAlignment="Left" Height="304" Margin="10,293,0,0" VerticalAlignment="Top" Width="436" Name="Grid1"/>
-            <RadioButton Content="Upload New Photos" HorizontalAlignment="Left" Margin="0,144,0,0" VerticalAlignment="Top" Name="cbUploadNew" IsChecked="True"/>
-            <RadioButton Content="Upload All Photos" HorizontalAlignment="Left" Margin="0,216,0,0" VerticalAlignment="Top" Name="cbUploadAll"/>
+            <TextBlock HorizontalAlignment="Left" Margin="18,149,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" Name="TextBlock1"/>
+            <Button Content="Upload" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="111,0,0,0" Grid.Row="1" Click="Button_Click_1"/>
 
         </Grid>
 
