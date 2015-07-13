@@ -43,6 +43,11 @@ namespace PhoneClassLibrary1
             set { SetSetting(SECRET, value); }
         }
 
+        public static bool TokensSet()
+        {
+            return string.IsNullOrEmpty(OAuthAccessToken + OAuthAccessTokenSecret);
+        }
+
         public static List<string> SelectedAlbums
         {
             get { 

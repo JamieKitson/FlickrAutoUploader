@@ -43,6 +43,25 @@ namespace PhoneClassLibrary1
             return f;
         }
 
+        private static FlickrResult<FoundUser> testResult;
+
+        public static async Task<bool> Test()
+        {
+            if (!Settings.TokensSet())
+                return false;
+            Flickr f = getFlickr();
+            flickrReturned = false;
+            testResult = null;
+            f.TestLoginAsync((ret) => { 
+                testResult = ret;
+                flickrReturned = true;
+            });
+            await waitForFlickrResult();
+            if ((testResult == null) || (testResult.HasError))
+                return false;
+            return true;
+        }
+
         public static async Task Upload()
         {
             try
@@ -110,8 +129,8 @@ namespace PhoneClassLibrary1
         private static async Task waitForFlickrResult(/*ResultTypes rt*/)
         {
             int i = 0;
-            while (!flickrReturned && (i++ < 5 * 60 * 2)) // time out after 5 minutes 
-                await Task.Delay(500);
+            while (!flickrReturned && (i++ < 60 * 4)) // time out after 1 minute
+                await Task.Delay(250);
             //Thread.Sleep(500);
             if (!flickrReturned)
                 throw new Exception("Timeedout");

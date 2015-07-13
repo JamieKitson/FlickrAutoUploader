@@ -83,14 +83,17 @@ namespace FlickrAutoUploader
             */
             if (ScheduledActionService.Find(resourceIntensiveTaskName) != null)
             {
-                ScheduledActionService.Remove(resourceIntensiveTaskName);
+                ToggleSwitch1.IsChecked = true;
+                //ScheduledActionService.Remove(resourceIntensiveTaskName);
             }
+            /*
             resourceIntensiveTask = new ResourceIntensiveTask(resourceIntensiveTaskName);
             resourceIntensiveTask.Description = "This demonstrates a resource-intensive task.";
-            ScheduledActionService.Add(resourceIntensiveTask);
+            ScheduledActionService.Add(resourceIntensiveTask); */
             //ScheduledActionService.LaunchForTest(resourceIntensiveTaskName, TimeSpan.FromSeconds(10));
             LoadFolders();
-            TextBlock1.Text = Settings.StartFrom.ToString();
+            //TextBlock1.Text = Settings.StartFrom.ToString();
+            DatePicker1.Value = Settings.StartFrom;
         }
 
 
@@ -99,12 +102,9 @@ namespace FlickrAutoUploader
 
             Flickr f = MyFlickr.getFlickr();
 
-            if (!string.IsNullOrEmpty(Settings.OAuthAccessToken + Settings.OAuthAccessTokenSecret))
+            /*
+            if (Settings.TokensSet())
             {
-                /*
-                f.OAuthAccessToken = (string)s[TOKEN];
-                f.OAuthAccessTokenSecret = (string)s[SECRET];
-                */
                 f.TestLoginAsync((res) =>
                 {
                     if (res.HasError)
@@ -115,7 +115,8 @@ namespace FlickrAutoUploader
 
                 return;
             }
-                
+            */
+
             f.OAuthGetRequestTokenAsync(callBack, (tok) => 
             {
                 if (tok.HasError)
@@ -123,9 +124,6 @@ namespace FlickrAutoUploader
                 else
                 {
                     requestToken = tok.Result;
-
-                    //f.OAuthAccessToken = tok.Result.Token;
-                    //f.OAuthAccessTokenSecret = tok.Result.TokenSecret;
                     string url = f.OAuthCalculateAuthorizationUrl(requestToken.Token, AuthLevel.Write);
                     WebBrowser1.Navigate(new Uri(url));
                     WebBrowser1.Visibility = Visibility.Visible;
@@ -243,6 +241,17 @@ namespace FlickrAutoUploader
         private async void Button_Click_1(object sender, RoutedEventArgs e)
         {
             await MyFlickr.Upload();
+        }
+
+        private void ToggleSwitch_Checked(object sender, RoutedEventArgs e)
+        {
+            if (ScheduledActionService.Find(resourceIntensiveTaskName) != null)
+            {
+                ScheduledActionService.Remove(resourceIntensiveTaskName);
+            }
+            resourceIntensiveTask = new ResourceIntensiveTask(resourceIntensiveTaskName);
+            resourceIntensiveTask.Description = "This demonstrates a resource-intensive task.";
+            ScheduledActionService.Add(resourceIntensiveTask);
         }
     }
 }
