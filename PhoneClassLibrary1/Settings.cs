@@ -14,6 +14,7 @@ namespace PhoneClassLibrary1
         private const string TOKEN = "token";
         private const string SECRET = "secret";
         private const string START_FROM = "startfrom";
+        private const string ENABLED = "enabled";
 
         private static T GetSetting<T>(string name, T defVal)
         {
@@ -62,6 +63,12 @@ namespace PhoneClassLibrary1
         {
             get { return GetSetting(START_FROM, new DateTime(2015, 6, 22)); } // CHANGEME to DateTime.Now
             set { SetSetting(START_FROM, value); }
+        }
+
+        public static bool Enabled
+        {
+            get { return GetSetting(ENABLED, false); }
+            set { SetSetting(ENABLED, value); }
         }
     }
 }

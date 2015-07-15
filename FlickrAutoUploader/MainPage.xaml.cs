@@ -81,6 +81,8 @@ namespace FlickrAutoUploader
             cbUploadAll.Checked += RadioButton_Checked;
             cbUploadNew.Checked += RadioButton_Checked;
             */
+            SetToggleCheck();
+            /*
             if (ScheduledActionService.Find(resourceIntensiveTaskName) != null)
             {
                 ToggleSwitch1.IsChecked = true;
@@ -96,6 +98,12 @@ namespace FlickrAutoUploader
             DatePicker1.Value = Settings.StartFrom;
         }
 
+        private async void SetToggleCheck()
+        {
+            ToggleSwitch1.Checked -= ToggleSwitch_Checked;
+            ToggleSwitch1.IsChecked = Settings.Enabled && await MyFlickr.Test() && (ScheduledActionService.Find(resourceIntensiveTaskName) != null);
+            ToggleSwitch1.Checked += ToggleSwitch_Checked;
+        }
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
@@ -154,7 +162,10 @@ namespace FlickrAutoUploader
                 f.OAuthGetAccessTokenAsync(requestToken, ps[OAUTH_VERIFIER], (tok) =>
                 {
                     if (tok.HasError)
-                        TextBox1.Text = tok.Error.Message;
+                    {
+                        ToggleSwitch1.IsChecked = false;
+                        MessageBox.Show(tok.Error.Message);
+                    }
                     else
                     {
                         Settings.OAuthAccessToken = tok.Result.Token;
@@ -164,7 +175,8 @@ namespace FlickrAutoUploader
                         settings[MyFlickr.TOKEN] = tok.Result.Token;
                         settings[MyFlickr.SECRET] = tok.Result.TokenSecret;
                         settings.Save(); */
-                        TextBox1.Text = tok.Result.UserId;                        
+                        TextBox1.Text = tok.Result.UserId;
+                        AddScheduledTask();
                     }
                 }); 
             }
@@ -243,7 +255,7 @@ namespace FlickrAutoUploader
             await MyFlickr.Upload();
         }
 
-        private void ToggleSwitch_Checked(object sender, RoutedEventArgs e)
+        private void AddScheduledTask()
         {
             if (ScheduledActionService.Find(resourceIntensiveTaskName) != null)
             {
@@ -252,6 +264,51 @@ namespace FlickrAutoUploader
             resourceIntensiveTask = new ResourceIntensiveTask(resourceIntensiveTaskName);
             resourceIntensiveTask.Description = "This demonstrates a resource-intensive task.";
             ScheduledActionService.Add(resourceIntensiveTask);
+        }
+
+        private async void ToggleSwitch_Checked(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("checked");
+            if (await MyFlickr.Test())
+            {
+                AddScheduledTask();
+            }
+            else
+            {
+                Flickr f = MyFlickr.getFlickr();
+                f.OAuthGetRequestTokenAsync(callBack, (tok) =>
+                {
+                    if (tok.HasError)
+                        TextBox1.Text = tok.Error.Message;
+                    else
+                    {
+                        requestToken = tok.Result;
+                        string url = f.OAuthCalculateAuthorizationUrl(requestToken.Token, AuthLevel.Write);
+                        WebBrowser1.Navigate(new Uri(url));
+                        WebBrowser1.Visibility = Visibility.Visible;
+                    }
+                });
+            }
+        }
+
+        private void RemoveSchedule()
+        {
+            if (ScheduledActionService.Find(resourceIntensiveTaskName) != null)
+            {
+                ScheduledActionService.Remove(resourceIntensiveTaskName);
+            }
+        }
+
+        private void ToggleSwitch1_Unchecked(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("unchecked");
+            RemoveSchedule();
+            Settings.Enabled = false;
+        }
+
+        private void DatePicker1_ValueChanged(object sender, DateTimeValueChangedEventArgs e)
+        {
+            ToggleSwitch1.IsChecked = true; // !ToggleSwitch1.IsChecked;
         }
     }
 }

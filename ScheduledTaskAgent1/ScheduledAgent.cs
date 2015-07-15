@@ -58,7 +58,13 @@ namespace ScheduledTaskAgent1
             {
                 // Execute resource-intensive task actions here.
                 toastMessage = "Resource-intensive task running.";
-                await MyFlickr.Upload();
+                if (Settings.Enabled)
+                {
+                    if (await MyFlickr.Test())
+                        await MyFlickr.Upload();
+                    else
+                        Settings.Enabled = false;
+                }
             }
 
 
