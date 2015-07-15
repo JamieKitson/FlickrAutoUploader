@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.IO.IsolatedStorage;
 using System.Linq;
 using System.Text;
@@ -20,9 +22,14 @@ namespace PhoneClassLibrary1
         {
             IsolatedStorageSettings s = IsolatedStorageSettings.ApplicationSettings;
             if (s.Contains(name))
+            {
                 return (T)s[name];
+            }
             else
+            {
+                SetSetting(name, defVal);
                 return defVal;
+            }
         }
 
         private static void SetSetting<T>(string name, T val)
@@ -46,22 +53,23 @@ namespace PhoneClassLibrary1
 
         public static bool TokensSet()
         {
-            return string.IsNullOrEmpty(OAuthAccessToken + OAuthAccessTokenSecret);
+            return !string.IsNullOrEmpty(OAuthAccessToken + OAuthAccessTokenSecret);
         }
 
-        public static List<string> SelectedAlbums
+        public static IList<string> SelectedAlbums
         {
-            get { 
-                List<string> sa = GetSetting(ALBUMS, new List<string>( new string[] {"Camera Roll"})); // Default to selecting camera roll
-                
-                return sa;
+            get 
+            { 
+                var ol = GetSetting(ALBUMS, new ObservableCollection<string>(new string[] { "Camera Roll" }));
+                ol.CollectionChanged += delegate(object sender, NotifyCollectionChangedEventArgs e) { SetSetting(ALBUMS, ol); };
+                return ol;
             }
-            set { SetSetting(ALBUMS, value); } 
+            set { SetSetting(ALBUMS, value); }
         }
 
         public static DateTime StartFrom
         {
-            get { return GetSetting(START_FROM, new DateTime(2015, 6, 22)); } // CHANGEME to DateTime.Now
+            get { return GetSetting(START_FROM, DateTime.Now); }
             set { SetSetting(START_FROM, value); }
         }
 

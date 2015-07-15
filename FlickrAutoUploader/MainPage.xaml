@@ -50,12 +50,12 @@
         <Grid x:Name="ContentPanel" Grid.Row="1" Margin="12,0,12,0">
             <Button Content="Auth" HorizontalAlignment="Left" VerticalAlignment="Top" Click="Button_Click"/>
             <TextBox HorizontalAlignment="Left" Height="72" Margin="0,72,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="456" Name="TextBox1"/>
-            <phone:WebBrowser HorizontalAlignment="Left" Margin="0,144,0,0" VerticalAlignment="Top" Height="312" Width="456" Name="WebBrowser1" Navigating="WebBrowser1_Navigating" Visibility="Collapsed"/>
             <Grid HorizontalAlignment="Left" Height="304" Margin="10,293,0,0" VerticalAlignment="Top" Width="436" Name="Grid1" />
             <Button Content="Upload" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="111,0,0,0" Grid.Row="1" Click="Button_Click_1"/>
-            <toolkit:DatePicker Margin="138,144,166,393" Name="DatePicker1" ValueChanged="DatePicker1_ValueChanged" />
+            <toolkit:DatePicker Margin="138,144,145,393" Name="DatePicker1" ValueChanged="DatePicker1_ValueChanged" HorizontalContentAlignment="Center" HorizontalAlignment="Center" />
             <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="Upload from:" VerticalAlignment="Top" Margin="18,167,0,0" />
             <toolkit:ToggleSwitch Margin="42,219,84,276" Content="Enabled" Checked="ToggleSwitch_Checked" Name="ToggleSwitch1" Unchecked="ToggleSwitch1_Unchecked" />
+            <phone:WebBrowser HorizontalAlignment="Left" Margin="0,167,0,0" VerticalAlignment="Top" Height="430" Width="456" x:Name="WebBrowser1" Navigating="WebBrowser1_Navigating" Visibility="Collapsed"/>
         </Grid>
 
         <!--Uncomment to see an alignment grid to help ensure your controls are

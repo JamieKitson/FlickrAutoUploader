@@ -30,14 +30,6 @@ namespace PhoneClassLibrary1
         public static Flickr getFlickr()
         {
             Flickr f = new Flickr(Secrets.apiKey, Secrets.apiSecret);
-            /*
-            IsolatedStorageSettings s = IsolatedStorageSettings.ApplicationSettings;
-            if (s.Contains(TOKEN) && s.Contains(SECRET))
-            {
-                f.OAuthAccessToken = (string)s[TOKEN];
-                f.OAuthAccessTokenSecret = (string)s[SECRET];
-            }
-            */
             f.OAuthAccessToken = Settings.OAuthAccessToken;
             f.OAuthAccessTokenSecret = Settings.OAuthAccessTokenSecret;
             return f;
@@ -58,7 +50,12 @@ namespace PhoneClassLibrary1
             });
             await waitForFlickrResult();
             if ((testResult == null) || (testResult.HasError))
+            {
+                Settings.OAuthAccessToken = "";
+                Settings.OAuthAccessTokenSecret = "";
+                Settings.Enabled = false;
                 return false;
+            }
             return true;
         }
 
@@ -128,9 +125,10 @@ namespace PhoneClassLibrary1
 
         private static async Task waitForFlickrResult(/*ResultTypes rt*/)
         {
+            const int DELAY_MS = 100;
             int i = 0;
-            while (!flickrReturned && (i++ < 60 * 4)) // time out after 1 minute
-                await Task.Delay(250);
+            while (!flickrReturned && (i++ < 60 * 1000 / DELAY_MS)) // time out after 1 minute
+                await Task.Delay(DELAY_MS);
             //Thread.Sleep(500);
             if (!flickrReturned)
                 throw new Exception("Timeedout");
