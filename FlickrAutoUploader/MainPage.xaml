@@ -51,18 +51,20 @@
 
                 <Button Content="Auth" HorizontalAlignment="Left" VerticalAlignment="Top" Click="Button_Click" Margin="0,697,0,0"/>
                 <TextBox HorizontalAlignment="Left" Height="72" Margin="0,769,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="456" x:Name="TextBox1"/>
-                <Grid HorizontalAlignment="Left" Height="304" Margin="10,299,0,0" VerticalAlignment="Top" Width="436" x:Name="Grid1" />
+                <Grid HorizontalAlignment="Left" Height="145" Margin="10,299,0,0" VerticalAlignment="Top" Width="436" x:Name="Grid1" >
+                    <CheckBox Content="Camera Roll" HorizontalAlignment="Left" VerticalAlignment="Top" IsChecked="True"/>
+                    <CheckBox Content="Screenshots" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,54,0,0"/>
+                </Grid>
                 <Button Content="Upload" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="111,697,0,0" Click="Button_Click_1"/>
                 <toolkit:DatePicker Margin="186,74,0,0" x:Name="dpUploadFrom" ValueChanged="dpUploadFrom_ValueChanged" HorizontalContentAlignment="Center" HorizontalAlignment="Left" VerticalAlignment="Top" />
                 <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="Upload from:" VerticalAlignment="Top" Margin="18,92,0,0" />
                 <toolkit:ToggleSwitch Margin="2,0,104,955" Content="Enabled" Checked="tgEnabled_Checked" x:Name="tgEnabled" Unchecked="tgEnabled_Unchecked" />
-                <phone:WebBrowser HorizontalAlignment="Left" Margin="0,167,0,0" VerticalAlignment="Top" Height="430" Width="456" x:Name="WebBrowser1" Navigating="WebBrowser1_Navigating" Visibility="Collapsed"/>
                 <Button Content="Run" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="241,697,0,0" Click="Button_Click_2"/>
                 <TextBox HorizontalAlignment="Left" Height="72" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="392" Margin="66,222,-2,0" Name="tbTags" TextChanged="tbTags_TextChanged"/>
                 <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Top" Margin="18,167,0,0" Text="Visibility:" />
-                <toolkit:ListPicker Margin="147,147,10,201" Name="PrivacyPicker" SelectionChanged="PrivacyPicker_SelectionChanged">
+                <toolkit:ListPicker Margin="147,147,10,629" Name="PrivacyPicker" SelectionChanged="PrivacyPicker_SelectionChanged">
                     <toolkit:ListPicker.Items>
-                        <toolkit:ListPickerItem Content="Private" Margin="0,0,107,0" />
+                        <toolkit:ListPickerItem Content="Private" />
                         <toolkit:ListPickerItem Content="Family" />
                         <toolkit:ListPickerItem Content="Friends" />
                         <toolkit:ListPickerItem Content="Friends &amp; Family" />
@@ -70,6 +72,9 @@
                     </toolkit:ListPicker.Items>
                 </toolkit:ListPicker>
                 <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="Tags:" VerticalAlignment="Top" Margin="18,247,0,0"/>
+                <toolkit:ToggleSwitch Name="tgToast" Margin="2,486,-2,476" Content="Toast notifications" Checked="tgToast_Checked" Unchecked="tgToast_Checked"/>
+                <toolkit:ToggleSwitch Name="tgDebug" Margin="0,560,0,402" Content="Debug notifications" Checked="tgDebug_Checked" Unchecked="tgDebug_Checked"/>
+                <phone:WebBrowser HorizontalAlignment="Left" Margin="0,10,0,0" VerticalAlignment="Top" Height="661" Width="456" x:Name="WebBrowser1" Navigating="WebBrowser1_Navigating" Visibility="Collapsed"/>
             </Grid>
         </ScrollViewer>
 

@@ -91,7 +91,8 @@ namespace PhoneClassLibrary1
 
         public static void DebugLog(string msg)
         {
-            ToastMessage(msg);
+            if (Settings.Debug)
+                ToastMessage(msg);
         }
 
         public static void ErrorLog(string msg)
@@ -101,10 +102,13 @@ namespace PhoneClassLibrary1
 
         public static void ToastMessage(string msg)
         {
-            ShellToast toast = new ShellToast();
-            toast.Title = "Flickr Auto Uploader";
-            toast.Content = msg;
-            toast.Show();
+            if (Settings.Toast)
+            {
+                ShellToast toast = new ShellToast();
+                toast.Title = "Flickr Auto Uploader";
+                toast.Content = msg;
+                toast.Show();
+            }
         }
 
         public enum ePrivacy { Private, Friends, Family, FriendsFamily, Public };
@@ -121,5 +125,20 @@ namespace PhoneClassLibrary1
             get { return GetSetting(TAGS, "wp8flickrautouploader"); }
             set { SetSetting(TAGS, value); }
         }
+
+        private const string TOAST = "toast";
+        public static bool Toast
+        {
+            get { return GetSetting(TOAST, true); }
+            set { SetSetting(TOAST, value); }
+        }
+
+        private const string DEBUG = "debug";
+        public static bool Debug
+        {
+            get { return GetSetting(DEBUG, true); }
+            set { SetSetting(DEBUG, value); }
+        }
+
     }
 }

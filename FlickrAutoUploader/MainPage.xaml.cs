@@ -46,6 +46,8 @@ namespace FlickrAutoUploader
             } 
             catch { }
             tbTags.Text = Settings.Tags;
+            tgDebug.IsChecked = Settings.Debug;
+            tgToast.IsChecked = Settings.Toast;
         }
 
         private void SetToggleCheck()
@@ -113,6 +115,7 @@ namespace FlickrAutoUploader
 
         private void LoadFolders()
         {
+            Grid1.Children.Clear();
             //const int CB_HEIGHT = 50;
             double t = 0;
             IList<string> checkedAlbums = Settings.SelectedAlbums;
@@ -222,10 +225,11 @@ namespace FlickrAutoUploader
         protected override void OnBackKeyPress(System.ComponentModel.CancelEventArgs e)
         {
             base.OnBackKeyPress(e);
-            if (WebBrowser1.Visibility == Visibility.Collapsed)
-                return;
-            e.Cancel = true;
-            WebBrowser1.Visibility = Visibility.Collapsed;
+            if (WebBrowser1.Visibility == Visibility.Visible)
+            {
+                e.Cancel = true;
+                WebBrowser1.Visibility = Visibility.Collapsed;
+            }
         }
 
         private void Button_Click_2(object sender, RoutedEventArgs e)
@@ -255,5 +259,16 @@ namespace FlickrAutoUploader
         {
             Settings.Tags = tbTags.Text;
         }
+
+        private void tgToast_Checked(object sender, RoutedEventArgs e)
+        {
+            Settings.Toast = (bool)((ToggleSwitch)sender).IsChecked;
+        }
+
+        private void tgDebug_Checked(object sender, RoutedEventArgs e)
+        {
+            Settings.Debug = (bool)((ToggleSwitch)sender).IsChecked;
+        }
+
     }
 }
