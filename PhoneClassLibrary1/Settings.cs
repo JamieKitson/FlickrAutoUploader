@@ -114,5 +114,12 @@ namespace PhoneClassLibrary1
             get { return GetSetting(PRIVACY, ePrivacy.Private); }
             set { SetSetting(PRIVACY, value); }
         }
+
+        private const string TAGS = "tags";
+        public static string Tags
+        {
+            get { return GetSetting(TAGS, "wp8flickrautouploader"); }
+            set { SetSetting(TAGS, value); }
+        }
     }
 }

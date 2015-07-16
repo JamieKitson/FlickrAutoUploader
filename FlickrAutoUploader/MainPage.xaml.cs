@@ -17,6 +17,8 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Collections.ObjectModel;
+//using Windows.UI;
+using System.Windows.Media;
 
 namespace FlickrAutoUploader
 {
@@ -33,24 +35,33 @@ namespace FlickrAutoUploader
             InitializeComponent();
             SetToggleCheck();
             LoadFolders();
-            DatePicker1.Value = Settings.StartFrom;
+            dpUploadFrom.Value = Settings.StartFrom;
             PrivacyPicker.SelectedIndex = (int)Settings.Privacy;
+            try
+            {
+                // Fix transparent ListPicker background in light theme
+                SolidColorBrush bg = (SolidColorBrush)Application.Current.Resources["PhoneBackgroundBrush"];
+                if (bg.Color == Colors.White)
+                    PrivacyPicker.Items.ToList().ForEach(i => ((ListPickerItem)i).Background = bg);
+            } 
+            catch { }
+            tbTags.Text = Settings.Tags;
         }
 
         private void SetToggleCheck()
         {
-            ToggleSwitch1.Checked -= ToggleSwitch_Checked;
+            tgEnabled.Checked -= tgEnabled_Checked;
             if (Settings.Enabled && (ScheduledActionService.Find(resourceIntensiveTaskName) != null))
             {
-                ToggleSwitch1.IsChecked = true;
+                tgEnabled.IsChecked = true;
                 MyFlickr.getFlickr().TestLoginAsync((ret) =>
                     {
                         if (ret.HasError)
-                            ToggleSwitch1.IsChecked = false;
+                            tgEnabled.IsChecked = false;
                     });
             }
 
-            ToggleSwitch1.Checked += ToggleSwitch_Checked;
+            tgEnabled.Checked += tgEnabled_Checked;
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -86,7 +97,7 @@ namespace FlickrAutoUploader
                 {
                     if (tok.HasError)
                     {
-                        ToggleSwitch1.IsChecked = false;
+                        tgEnabled.IsChecked = false;
                         MessageBox.Show(tok.Error.Message);
                     }
                     else
@@ -94,7 +105,7 @@ namespace FlickrAutoUploader
                         Settings.OAuthAccessToken = tok.Result.Token;
                         Settings.OAuthAccessTokenSecret = tok.Result.TokenSecret;
                         TextBox1.Text = tok.Result.UserId;
-                        ToggleSwitch1.IsChecked = true;
+                        tgEnabled.IsChecked = true;
                     }
                 }); 
             }
@@ -103,6 +114,7 @@ namespace FlickrAutoUploader
         private void LoadFolders()
         {
             //const int CB_HEIGHT = 50;
+            double t = 0;
             IList<string> checkedAlbums = Settings.SelectedAlbums;
             foreach (MediaSource source in MediaSource.GetAvailableMediaSources())
             {
@@ -110,30 +122,29 @@ namespace FlickrAutoUploader
                 {
                     MediaLibrary medLib = new MediaLibrary(source);
                     PictureAlbumCollection allAlbums = medLib.RootPictureAlbum.Albums;
-                    double t = 0;
                     foreach (PictureAlbum album in allAlbums)
                     {
                         CheckBox cb = new CheckBox();
                         cb.Content = album.Name;
                         cb.IsChecked = checkedAlbums.Contains(album.Name);
-                        cb.Checked += CheckBox_Checked;
-                        cb.Unchecked += CheckBox_Unchecked;
+                        cb.Checked += Album_Checked;
+                        cb.Unchecked += Album_Unchecked;
                         Grid1.Children.Add(cb);
                         cb.Margin = new Thickness(0, t, 0, 0); // Grid1.Height - t - CB_HEIGHT);
                         //cb.Height = 72;
                         t += 60;
                     }
                 }
-            } 
-
+            }
+            Grid1.Height = t + 60;
         }
 
-        private void CheckBox_Checked(object sender, RoutedEventArgs e)
+        private void Album_Checked(object sender, RoutedEventArgs e)
         {
             Settings.SelectedAlbums.Add((string)((CheckBox)sender).Content);
         }
 
-        private void CheckBox_Unchecked(object sender, RoutedEventArgs e)
+        private void Album_Unchecked(object sender, RoutedEventArgs e)
         {
             Settings.SelectedAlbums.Remove((string)((CheckBox)sender).Content);
         }
@@ -155,7 +166,7 @@ namespace FlickrAutoUploader
             Settings.Enabled = true;
         }
 
-        private async void ToggleSwitch_Checked(object sender, RoutedEventArgs e)
+        private async void tgEnabled_Checked(object sender, RoutedEventArgs e)
         {
             //MessageBox.Show("checked");
             if (await MyFlickr.Test())
@@ -164,7 +175,7 @@ namespace FlickrAutoUploader
             }
             else
             {
-                ToggleSwitch1.IsChecked = false;
+                tgEnabled.IsChecked = false;
                 AuthAttempts = 0;
                 StartAuthProcess();
             }
@@ -196,16 +207,16 @@ namespace FlickrAutoUploader
             }
         }
 
-        private void ToggleSwitch1_Unchecked(object sender, RoutedEventArgs e)
+        private void tgEnabled_Unchecked(object sender, RoutedEventArgs e)
         {
             //MessageBox.Show("unchecked");
             RemoveSchedule();
             Settings.Enabled = false;
         }
 
-        private void DatePicker1_ValueChanged(object sender, DateTimeValueChangedEventArgs e)
+        private void dpUploadFrom_ValueChanged(object sender, DateTimeValueChangedEventArgs e)
         {
-            Settings.StartFrom = (DateTime)DatePicker1.Value;
+            Settings.StartFrom = (DateTime)dpUploadFrom.Value;
         }
 
         protected override void OnBackKeyPress(System.ComponentModel.CancelEventArgs e)
@@ -238,6 +249,11 @@ namespace FlickrAutoUploader
         {
             if ((PrivacyPicker != null) && (PrivacyPicker.SelectedIndex > -1))
                 Settings.Privacy = (Settings.ePrivacy)PrivacyPicker.SelectedIndex;
+        }
+
+        private void tbTags_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            Settings.Tags = tbTags.Text;
         }
     }
 }
