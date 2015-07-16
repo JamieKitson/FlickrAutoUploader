@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Phone.Shell;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -11,12 +12,6 @@ namespace PhoneClassLibrary1
 {
     public class Settings
     {
-
-        private const string ALBUMS = "albums";
-        private const string TOKEN = "token";
-        private const string SECRET = "secret";
-        private const string START_FROM = "startfrom";
-        private const string ENABLED = "enabled";
 
         private static T GetSetting<T>(string name, T defVal)
         {
@@ -39,11 +34,15 @@ namespace PhoneClassLibrary1
             s.Save();
         }
 
+        private const string TOKEN = "token";
+
         public static string OAuthAccessToken
         {
             get { return GetSetting(TOKEN, ""); }
             set { SetSetting(TOKEN, value); }
         }
+
+        private const string SECRET = "secret";
 
         public static string OAuthAccessTokenSecret
         {
@@ -56,6 +55,8 @@ namespace PhoneClassLibrary1
             return !string.IsNullOrEmpty(OAuthAccessToken + OAuthAccessTokenSecret);
         }
 
+        private const string ALBUMS = "albums";
+
         public static IList<string> SelectedAlbums
         {
             get 
@@ -67,16 +68,43 @@ namespace PhoneClassLibrary1
             set { SetSetting(ALBUMS, value); }
         }
 
+        private const string START_FROM = "startfrom";
+
         public static DateTime StartFrom
         {
             get { return GetSetting(START_FROM, DateTime.Now); }
             set { SetSetting(START_FROM, value); }
         }
 
+        private const string ENABLED = "enabled";
+
         public static bool Enabled
         {
             get { return GetSetting(ENABLED, false); }
             set { SetSetting(ENABLED, value); }
+        }
+
+        public static void Log(string msg)
+        {
+            ToastMessage(msg);
+        }
+
+        public static void DebugLog(string msg)
+        {
+            ToastMessage(msg);
+        }
+
+        public static void ErrorLog(string msg)
+        {
+            ToastMessage("Error: " + msg);
+        }
+
+        public static void ToastMessage(string msg)
+        {
+            ShellToast toast = new ShellToast();
+            toast.Title = "Flickr Auto Uploader";
+            toast.Content = msg;
+            toast.Show();
         }
     }
 }

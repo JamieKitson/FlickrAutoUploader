@@ -56,6 +56,7 @@
             <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="Upload from:" VerticalAlignment="Top" Margin="18,167,0,0" />
             <toolkit:ToggleSwitch Margin="42,219,84,276" Content="Enabled" Checked="ToggleSwitch_Checked" Name="ToggleSwitch1" Unchecked="ToggleSwitch1_Unchecked" />
             <phone:WebBrowser HorizontalAlignment="Left" Margin="0,167,0,0" VerticalAlignment="Top" Height="430" Width="456" x:Name="WebBrowser1" Navigating="WebBrowser1_Navigating" Visibility="Collapsed"/>
+            <Button Content="Run" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="241,0,0,0" Click="Button_Click_2"/>
         </Grid>
 
         <!--Uncomment to see an alignment grid to help ensure your controls are

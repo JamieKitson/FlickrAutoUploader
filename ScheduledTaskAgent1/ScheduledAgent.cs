@@ -45,21 +45,30 @@ namespace ScheduledTaskAgent1
         protected override async void OnInvoke(ScheduledTask task)
         {
 
-            string toastMessage = "";
+            // string toastMessage = "";
 
             // If your application uses both PeriodicTask and ResourceIntensiveTask
             // you can branch your application code here. Otherwise, you don't need to.
             if (task is PeriodicTask)
             {
                 // Execute periodic task actions here.
-                toastMessage = "Periodic task running.";
+                // toastMessage = "Periodic task running.";
             }
             else
             {
+                Settings.DebugLog("Schedule started, Enabled: " + Settings.Enabled);
                 // Execute resource-intensive task actions here.
-                toastMessage = "Resource-intensive task running.";
-                if (Settings.Enabled && await MyFlickr.Test())
-                    await MyFlickr.Upload();
+                // toastMessage = "Resource-intensive task running.";
+                if (Settings.Enabled)
+                {
+                    if (await MyFlickr.Test())
+                    {
+                        Settings.DebugLog("Test succeeded, starting upload.");
+                        await MyFlickr.Upload();
+                    }
+                    else
+                        Settings.DebugLog("Not uploading, test failed.");
+                }
             }
 
 

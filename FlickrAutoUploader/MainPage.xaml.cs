@@ -215,5 +215,22 @@ namespace FlickrAutoUploader
             e.Cancel = true;
             WebBrowser1.Visibility = Visibility.Collapsed;
         }
+
+        private void Button_Click_2(object sender, RoutedEventArgs e)
+        {
+            /*
+            ShellToast toast = new ShellToast();
+            toast.Title = "Flickr Auto Uploader";
+            toast.Content = "one";
+            toast.Show();
+
+            Settings.Log("two");
+
+            MessageBox.Show("Three");
+            */
+            //#if DEBUG_AGENT
+            ScheduledActionService.LaunchForTest(resourceIntensiveTaskName, TimeSpan.FromMilliseconds(2000));
+            //#endif
+        }
     }
 }
