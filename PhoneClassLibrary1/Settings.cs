@@ -106,5 +106,13 @@ namespace PhoneClassLibrary1
             toast.Content = msg;
             toast.Show();
         }
+
+        public enum ePrivacy { Private, Friends, Family, FriendsFamily, Public };
+        const string PRIVACY = "privacy";
+        public static ePrivacy Privacy
+        {
+            get { return GetSetting(PRIVACY, ePrivacy.Private); }
+            set { SetSetting(PRIVACY, value); }
+        }
     }
 }

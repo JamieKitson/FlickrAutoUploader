@@ -34,6 +34,7 @@ namespace FlickrAutoUploader
             SetToggleCheck();
             LoadFolders();
             DatePicker1.Value = Settings.StartFrom;
+            PrivacyPicker.SelectedIndex = (int)Settings.Privacy;
         }
 
         private void SetToggleCheck()
@@ -231,6 +232,12 @@ namespace FlickrAutoUploader
             //#if DEBUG_AGENT
             ScheduledActionService.LaunchForTest(resourceIntensiveTaskName, TimeSpan.FromMilliseconds(2000));
             //#endif
+        }
+
+        private void PrivacyPicker_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if ((PrivacyPicker != null) && (PrivacyPicker.SelectedIndex > -1))
+                Settings.Privacy = (Settings.ePrivacy)PrivacyPicker.SelectedIndex;
         }
     }
 }
