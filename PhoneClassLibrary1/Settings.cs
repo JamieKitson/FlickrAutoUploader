@@ -139,7 +139,7 @@ namespace PhoneClassLibrary1
         private const string LOG_LEVEL = "loglevel";
         public static double LogLevel
         {
-            get { return GetSetting(LOG_LEVEL, 1); }
+            get { return GetSetting<double>(LOG_LEVEL, 1); }
             set { SetSetting(LOG_LEVEL, value); }
         }
 

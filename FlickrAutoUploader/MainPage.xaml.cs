@@ -273,6 +273,7 @@ namespace FlickrAutoUploader
 
         private void Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
+            slLogLevel.Value = Math.Round(slLogLevel.Value);
             Settings.LogLevel = slLogLevel.Value;
         }
 
