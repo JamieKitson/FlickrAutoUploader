@@ -72,7 +72,7 @@ namespace ScheduledTaskAgent1
                         if (Settings.TestsFailed++ > 5)
                         {
                             Settings.Enabled = false;
-                            Settings.Log("Flickr login failed, please re-enable app to re-authenticate with Flickr.");
+                            Settings.ErrorLog("Flickr login failed, please re-enable app to re-authenticate with Flickr.");
                         }
                         else
                             Settings.DebugLog("Not uploading, test failed.");

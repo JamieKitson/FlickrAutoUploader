@@ -72,8 +72,9 @@
                     </toolkit:ListPicker.Items>
                 </toolkit:ListPicker>
                 <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="Tags:" VerticalAlignment="Top" Margin="18,247,0,0"/>
-                <toolkit:ToggleSwitch Name="tgToast" Margin="2,486,-2,476" Content="Toast notifications" Checked="tgToast_Checked" Unchecked="tgToast_Checked"/>
-                <toolkit:ToggleSwitch Name="tgDebug" Margin="0,560,0,402" Content="Debug notifications" Checked="tgDebug_Checked" Unchecked="tgDebug_Checked"/>
+                <Slider HorizontalAlignment="Left" VerticalAlignment="Top" Width="218" Margin="179,560,0,0" Maximum="2" SmallChange="1" Height="92" ValueChanged="Slider_ValueChanged" Name="slLogLevel" />
+                <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="Max" VerticalAlignment="Top" Margin="409,580,0,0" RenderTransformOrigin="1.493,0.671"/>
+                <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Top" Margin="18,575,0,0" Text="Notifications: Min" />
                 <phone:WebBrowser HorizontalAlignment="Left" Margin="0,10,0,0" VerticalAlignment="Top" Height="661" Width="456" x:Name="WebBrowser1" Navigating="WebBrowser1_Navigating" Visibility="Collapsed"/>
             </Grid>
         </ScrollViewer>

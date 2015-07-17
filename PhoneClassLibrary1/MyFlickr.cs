@@ -105,14 +105,14 @@ namespace PhoneClassLibrary1
                                 });
                             await waitForFlickrResult();
                             Settings.StartFrom = p.Date;
-                            Settings.Log("Uploaded: " + p.Name);
+                            Settings.LogInfo("Uploaded: " + p.Name);
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                Settings.ErrorLog(ex.Message);
+                Settings.DebugLog("Error uploading: " + ex.Message);
             }
         }
 

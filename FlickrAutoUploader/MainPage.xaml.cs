@@ -46,8 +46,7 @@ namespace FlickrAutoUploader
             } 
             catch { }
             tbTags.Text = Settings.Tags;
-            tgDebug.IsChecked = Settings.Debug;
-            tgToast.IsChecked = Settings.Toast;
+            slLogLevel.Value = Settings.LogLevel;
         }
 
         private void SetToggleCheck()
@@ -265,14 +264,9 @@ namespace FlickrAutoUploader
             Settings.Tags = tbTags.Text;
         }
 
-        private void tgToast_Checked(object sender, RoutedEventArgs e)
+        private void Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            Settings.Toast = (bool)((ToggleSwitch)sender).IsChecked;
-        }
-
-        private void tgDebug_Checked(object sender, RoutedEventArgs e)
-        {
-            Settings.Debug = (bool)((ToggleSwitch)sender).IsChecked;
+            Settings.LogLevel = slLogLevel.Value;
         }
 
     }

@@ -85,31 +85,33 @@ namespace PhoneClassLibrary1
             set { SetSetting(ENABLED, value); }
         }
 
-        public static void Log(string msg)
+        private static void Log(string msg, int level)
         {
-            ToastMessage(msg);
-        }
-
-        public static void DebugLog(string msg)
-        {
-            if (Settings.Debug)
+            if (level <= LogLevel)
                 ToastMessage(msg);
         }
 
         public static void ErrorLog(string msg)
         {
-            ToastMessage("Error: " + msg);
+            Log(msg, 0);
         }
 
-        public static void ToastMessage(string msg)
+        public static void LogInfo(string msg)
         {
-            if (Settings.Toast)
-            {
-                ShellToast toast = new ShellToast();
-                toast.Title = "Flickr Auto Uploader";
-                toast.Content = msg;
-                toast.Show();
-            }
+            Log(msg, 1);
+        }
+
+        public static void DebugLog(string msg)
+        {
+            Log(msg, 2);
+        }
+
+        private static void ToastMessage(string msg)
+        {
+            ShellToast toast = new ShellToast();
+            toast.Title = "Flickr Auto Uploader";
+            toast.Content = msg;
+            toast.Show();
         }
 
         public enum ePrivacy { Private, Friends, Family, FriendsFamily, Public };
@@ -123,22 +125,8 @@ namespace PhoneClassLibrary1
         private const string TAGS = "tags";
         public static string Tags
         {
-            get { return GetSetting(TAGS, "wp8flickrautouploader"); }
+            get { return GetSetting(TAGS, "wpflickrautouploader"); }
             set { SetSetting(TAGS, value); }
-        }
-
-        private const string TOAST = "toast";
-        public static bool Toast
-        {
-            get { return GetSetting(TOAST, true); }
-            set { SetSetting(TOAST, value); }
-        }
-
-        private const string DEBUG = "debug";
-        public static bool Debug
-        {
-            get { return GetSetting(DEBUG, true); }
-            set { SetSetting(DEBUG, value); }
         }
 
         private const string TESTS_FAILED = "testsfailed";
@@ -146,6 +134,13 @@ namespace PhoneClassLibrary1
         {
             get { return GetSetting(TESTS_FAILED, 0); }
             set { SetSetting(TESTS_FAILED, value); }
+        }
+
+        private const string LOG_LEVEL = "loglevel";
+        public static double LogLevel
+        {
+            get { return GetSetting(LOG_LEVEL, 1); }
+            set { SetSetting(LOG_LEVEL, value); }
         }
 
     }
