@@ -46,12 +46,7 @@ namespace PhoneClassLibrary1
                 });
             await waitForFlickrResult();
             if ((testResult == null) || (testResult.HasError))
-            {
-                Settings.OAuthAccessToken = "";
-                Settings.OAuthAccessTokenSecret = "";
-                Settings.Enabled = false;
                 return false;
-            }
             return true;
         }
 

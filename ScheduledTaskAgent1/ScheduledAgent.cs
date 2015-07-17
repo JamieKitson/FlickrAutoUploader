@@ -63,11 +63,20 @@ namespace ScheduledTaskAgent1
                 {
                     if (await MyFlickr.Test())
                     {
+                        Settings.TestsFailed = 0;
                         Settings.DebugLog("Test succeeded, starting upload.");
                         await MyFlickr.Upload();
                     }
                     else
-                        Settings.DebugLog("Not uploading, test failed.");
+                    {
+                        if (Settings.TestsFailed++ > 5)
+                        {
+                            Settings.Enabled = false;
+                            Settings.Log("Flickr login failed, please re-enable app to re-authenticate with Flickr.");
+                        }
+                        else
+                            Settings.DebugLog("Not uploading, test failed.");
+                    }
                 }
             }
 

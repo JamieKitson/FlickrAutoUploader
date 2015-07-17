@@ -35,7 +35,6 @@ namespace PhoneClassLibrary1
         }
 
         private const string TOKEN = "token";
-
         public static string OAuthAccessToken
         {
             get { return GetSetting(TOKEN, ""); }
@@ -43,7 +42,6 @@ namespace PhoneClassLibrary1
         }
 
         private const string SECRET = "secret";
-
         public static string OAuthAccessTokenSecret
         {
             get { return GetSetting(SECRET, ""); }
@@ -55,8 +53,13 @@ namespace PhoneClassLibrary1
             return !string.IsNullOrEmpty(OAuthAccessToken + OAuthAccessTokenSecret);
         }
 
-        private const string ALBUMS = "albums";
+        public static void UnsetTokens()
+        {
+            OAuthAccessToken = "";
+            OAuthAccessTokenSecret = "";
+        }
 
+        private const string ALBUMS = "albums";
         public static IList<string> SelectedAlbums
         {
             get 
@@ -69,7 +72,6 @@ namespace PhoneClassLibrary1
         }
 
         private const string START_FROM = "startfrom";
-
         public static DateTime StartFrom
         {
             get { return GetSetting(START_FROM, DateTime.Now); }
@@ -77,7 +79,6 @@ namespace PhoneClassLibrary1
         }
 
         private const string ENABLED = "enabled";
-
         public static bool Enabled
         {
             get { return GetSetting(ENABLED, false); }
@@ -138,6 +139,13 @@ namespace PhoneClassLibrary1
         {
             get { return GetSetting(DEBUG, true); }
             set { SetSetting(DEBUG, value); }
+        }
+
+        private const string TESTS_FAILED = "testsfailed";
+        public static int TestsFailed
+        {
+            get { return GetSetting(TESTS_FAILED, 0); }
+            set { SetSetting(TESTS_FAILED, value); }
         }
 
     }

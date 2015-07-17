@@ -62,7 +62,6 @@ namespace FlickrAutoUploader
                             tgEnabled.IsChecked = false;
                     });
             }
-
             tgEnabled.Checked += tgEnabled_Checked;
         }
 
@@ -183,6 +182,7 @@ namespace FlickrAutoUploader
             }
             else
             {
+                Settings.UnsetTokens();
                 tgEnabled.IsChecked = false;
                 AuthAttempts = 0;
                 StartAuthProcess();
