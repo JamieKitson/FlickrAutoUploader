@@ -36,6 +36,13 @@ namespace FlickrAutoUploader
             SetToggleCheck();
             LoadFolders();
             dpUploadFrom.Value = Settings.StartFrom;
+            PrivacyPicker.Items.Clear();
+            Enum.GetValues(typeof(Settings.ePrivacy)).Cast<Settings.ePrivacy>().ToList().ForEach(v =>
+                {
+                    ListPickerItem lpi = new ListPickerItem();
+                    lpi.Content = v.ToString().Replace("FriendsFamily", "Friends & Family");
+                    PrivacyPicker.Items.Add(lpi);
+                });
             PrivacyPicker.SelectedIndex = (int)Settings.Privacy;
             try
             {
