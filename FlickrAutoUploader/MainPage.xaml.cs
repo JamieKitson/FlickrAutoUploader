@@ -95,21 +95,26 @@ namespace FlickrAutoUploader
                         ps.Add(p[0], p[1]);
                 }
                 Flickr f = MyFlickr.getFlickr();
-                f.OAuthGetAccessTokenAsync(requestToken, ps[OAUTH_VERIFIER], (tok) =>
+                if (ps.ContainsKey(OAUTH_VERIFIER))
                 {
-                    if (tok.HasError)
+                    f.OAuthGetAccessTokenAsync(requestToken, ps[OAUTH_VERIFIER], (tok) =>
                     {
-                        tgEnabled.IsChecked = false;
-                        MessageBox.Show(tok.Error.Message);
-                    }
-                    else
-                    {
-                        Settings.OAuthAccessToken = tok.Result.Token;
-                        Settings.OAuthAccessTokenSecret = tok.Result.TokenSecret;
-                        TextBox1.Text = tok.Result.UserId;
-                        tgEnabled.IsChecked = true;
-                    }
-                }); 
+                        if (tok.HasError)
+                        {
+                            tgEnabled.IsChecked = false;
+                            MessageBox.Show(tok.Error.Message);
+                        }
+                        else
+                        {
+                            Settings.OAuthAccessToken = tok.Result.Token;
+                            Settings.OAuthAccessTokenSecret = tok.Result.TokenSecret;
+                            TextBox1.Text = tok.Result.UserId;
+                            tgEnabled.IsChecked = true;
+                        }
+                    });
+                }
+                else
+                    MessageBox.Show("Authorisation failed.");
             }
         }
 
