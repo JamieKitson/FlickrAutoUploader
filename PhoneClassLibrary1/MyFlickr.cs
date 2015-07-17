@@ -95,8 +95,8 @@ namespace PhoneClassLibrary1
 
                             flickrReturned = false;
                             bool isPublic = Settings.Privacy == Settings.ePrivacy.Public;
-                            bool isFriends = ((int)Settings.Privacy & (int)Settings.ePrivacy.Friends) > 0;
-                            bool isFamily = ((int)Settings.Privacy & (int)Settings.ePrivacy.Family) > 0;
+                            bool isFriends = (Settings.Privacy & Settings.ePrivacy.Friends) > 0;
+                            bool isFamily = (Settings.Privacy & Settings.ePrivacy.Family) > 0;
                             string tags = p.Name + ", " + hashTag + ", " + Settings.Tags;
                             f.UploadPictureAsync(p.GetImage(), p.Name, p.Name, "", tags, isPublic, isFamily, isFriends, ContentType.Photo, SafetyLevel.Safe, HiddenFromSearch.Visible, (ret) =>
                                 {
