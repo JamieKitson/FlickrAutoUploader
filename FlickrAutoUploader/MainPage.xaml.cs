@@ -32,16 +32,9 @@ namespace FlickrAutoUploader
             InitializeComponent();
             SetToggleCheck();
             LoadFolders();
-            dpUploadFrom.Value = Settings.StartFrom;
             PopulatePrivacy();
-            try
-            {
-                // Fix transparent ListPicker background in light theme
-                SolidColorBrush bg = (SolidColorBrush)Application.Current.Resources["PhoneBackgroundBrush"];
-                if (bg.Color == Colors.White)
-                    PrivacyPicker.Items.ToList().ForEach(i => ((ListPickerItem)i).Background = bg);
-            } 
-            catch { }
+            FixPrivacyItmemsBackground();
+            dpUploadFrom.Value = Settings.StartFrom;
             tbTags.Text = Settings.Tags;
             slLogLevel.Value = Settings.LogLevel;
         }
@@ -58,6 +51,18 @@ namespace FlickrAutoUploader
             });
             PrivacyPicker.SelectedIndex = (int)Settings.Privacy;
             PrivacyPicker.SelectionChanged += PrivacyPicker_SelectionChanged;
+        }
+
+        private void FixPrivacyItmemsBackground()
+        {
+            try
+            {
+                // Fix transparent ListPicker background in light theme
+                SolidColorBrush bg = (SolidColorBrush)Application.Current.Resources["PhoneBackgroundBrush"];
+                if (bg.Color == Colors.White)
+                    PrivacyPicker.Items.ToList().ForEach(i => ((ListPickerItem)i).Background = bg);
+            }
+            catch { } // Don't really care if it fails
         }
 
         private void SetToggleCheck()
