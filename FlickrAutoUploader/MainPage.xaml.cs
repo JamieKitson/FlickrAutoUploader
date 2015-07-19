@@ -23,8 +23,8 @@ namespace FlickrAutoUploader
 {
     public partial class MainPage : PhoneApplicationPage
     {
-        string callBack = "http://kitten-x.com";
-        string resourceIntensiveTaskName = "resourceIntensiveTaskName";
+        const string CALL_BACK = "http://kitten-x.com";
+        const string RIT_NAME = "FlickrAutoUploader";
         OAuthRequestToken requestToken;
 
         public MainPage()
@@ -68,7 +68,7 @@ namespace FlickrAutoUploader
         private void SetToggleCheck()
         {
             tgEnabled.Checked -= tgEnabled_Checked;
-            if (Settings.Enabled && (ScheduledActionService.Find(resourceIntensiveTaskName) != null))
+            if (Settings.Enabled && (ScheduledActionService.Find(RIT_NAME) != null))
             {
                 tgEnabled.IsChecked = true;
                 MyFlickr.getFlickr().TestLoginAsync((ret) =>
@@ -91,7 +91,7 @@ namespace FlickrAutoUploader
             const string OAUTH_VERIFIER = "oauth_verifier";
             const string OAUTH_TOKEN = "oauth_token";
             string q = e.Uri.Query;
-            if (e.Uri.AbsoluteUri.StartsWith(callBack) || (q.Contains(OAUTH_VERIFIER) && q.Contains(OAUTH_TOKEN)))
+            if (e.Uri.AbsoluteUri.StartsWith(CALL_BACK) || (q.Contains(OAUTH_VERIFIER) && q.Contains(OAUTH_TOKEN)))
             {
                 e.Cancel = true;
                 WebBrowser1.Visibility = Visibility.Collapsed;
@@ -172,11 +172,8 @@ namespace FlickrAutoUploader
 
         private void AddScheduledTask()
         {
-            if (ScheduledActionService.Find(resourceIntensiveTaskName) != null)
-            {
-                ScheduledActionService.Remove(resourceIntensiveTaskName);
-            }
-            ResourceIntensiveTask resourceIntensiveTask = new ResourceIntensiveTask(resourceIntensiveTaskName);
+            RemoveSchedule();
+            ResourceIntensiveTask resourceIntensiveTask = new ResourceIntensiveTask(RIT_NAME);
             resourceIntensiveTask.Description = "This demonstrates a resource-intensive task.";
             ScheduledActionService.Add(resourceIntensiveTask);
             Settings.Enabled = true;
@@ -200,7 +197,7 @@ namespace FlickrAutoUploader
         private void StartAuthProcess()
         {
             Flickr f = MyFlickr.getFlickr();
-            f.OAuthGetRequestTokenAsync(callBack, (tok) =>
+            f.OAuthGetRequestTokenAsync(CALL_BACK, (tok) =>
             {
                 if (tok.HasError)
                     TextBox1.Text = tok.Error.Message;
@@ -217,9 +214,9 @@ namespace FlickrAutoUploader
 
         private void RemoveSchedule()
         {
-            if (ScheduledActionService.Find(resourceIntensiveTaskName) != null)
+            if (ScheduledActionService.Find(RIT_NAME) != null)
             {
-                ScheduledActionService.Remove(resourceIntensiveTaskName);
+                ScheduledActionService.Remove(RIT_NAME);
             }
         }
 
@@ -258,7 +255,7 @@ namespace FlickrAutoUploader
             MessageBox.Show("Three");
             */
             //#if DEBUG_AGENT
-            ScheduledActionService.LaunchForTest(resourceIntensiveTaskName, TimeSpan.FromMilliseconds(2000));
+            ScheduledActionService.LaunchForTest(RIT_NAME, TimeSpan.FromMilliseconds(2000));
             //#endif
         }
 
