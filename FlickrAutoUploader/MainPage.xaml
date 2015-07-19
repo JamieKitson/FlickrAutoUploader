@@ -76,7 +76,7 @@
                         <toolkit:ListPickerItem Content="Public" />
                     </toolkit:ListPicker.Items>
                 </toolkit:ListPicker>
-                <phone:WebBrowser HorizontalAlignment="Left" Margin="0,10,0,0" VerticalAlignment="Top" Height="661" Width="456" x:Name="WebBrowser1" Navigating="WebBrowser1_Navigating" Visibility="Collapsed"/>
+                <phone:WebBrowser HorizontalAlignment="Left" Margin="0,10,0,0" VerticalAlignment="Top" Height="661" Width="456" x:Name="WebBrowser1" Navigating="WebBrowser1_Navigating" Visibility="Collapsed" IsScriptEnabled="True"/>
             </Grid>
         </ScrollViewer>
 

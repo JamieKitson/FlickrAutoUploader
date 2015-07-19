@@ -17,7 +17,6 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Collections.ObjectModel;
-//using Windows.UI;
 using System.Windows.Media;
 
 namespace FlickrAutoUploader
@@ -27,8 +26,6 @@ namespace FlickrAutoUploader
         string callBack = "http://kitten-x.com";
         string resourceIntensiveTaskName = "resourceIntensiveTaskName";
         OAuthRequestToken requestToken;
-        int AuthAttempts;
-        const int MAX_AUTH_ATTEMPTS = 3;
 
         public MainPage()
         {
@@ -36,14 +33,7 @@ namespace FlickrAutoUploader
             SetToggleCheck();
             LoadFolders();
             dpUploadFrom.Value = Settings.StartFrom;
-            PrivacyPicker.Items.Clear();
-            Enum.GetValues(typeof(Settings.ePrivacy)).Cast<Settings.ePrivacy>().ToList().ForEach(v =>
-                {
-                    ListPickerItem lpi = new ListPickerItem();
-                    lpi.Content = v.ToString().Replace("FriendsFamily", "Friends & Family");
-                    PrivacyPicker.Items.Add(lpi);
-                });
-            PrivacyPicker.SelectedIndex = (int)Settings.Privacy;
+            PopulatePrivacy();
             try
             {
                 // Fix transparent ListPicker background in light theme
@@ -54,6 +44,20 @@ namespace FlickrAutoUploader
             catch { }
             tbTags.Text = Settings.Tags;
             slLogLevel.Value = Settings.LogLevel;
+        }
+
+        private void PopulatePrivacy()
+        {
+            PrivacyPicker.SelectionChanged -= PrivacyPicker_SelectionChanged;
+            PrivacyPicker.Items.Clear();
+            Enum.GetValues(typeof(Settings.ePrivacy)).Cast<Settings.ePrivacy>().ToList().ForEach(v =>
+            {
+                ListPickerItem lpi = new ListPickerItem();
+                lpi.Content = v.ToString().Replace("FriendsFamily", "Friends & Family");
+                PrivacyPicker.Items.Add(lpi);
+            });
+            PrivacyPicker.SelectedIndex = (int)Settings.Privacy;
+            PrivacyPicker.SelectionChanged += PrivacyPicker_SelectionChanged;
         }
 
         private void SetToggleCheck()
@@ -73,7 +77,6 @@ namespace FlickrAutoUploader
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            AuthAttempts = 0;
             StartAuthProcess();
         }
 
@@ -83,12 +86,7 @@ namespace FlickrAutoUploader
             const string OAUTH_VERIFIER = "oauth_verifier";
             const string OAUTH_TOKEN = "oauth_token";
             string q = e.Uri.Query;
-            if ((e.Uri.AbsoluteUri == "https://m.flickr.com/") && (AuthAttempts++ < MAX_AUTH_ATTEMPTS))
-                StartAuthProcess();
-            //WebBrowser1.GetCookies()
-            else if (e.Uri.AbsoluteUri.StartsWith(callBack) || (q.Contains(OAUTH_VERIFIER) && q.Contains(OAUTH_TOKEN)))
-            //if (!e.Uri.AbsoluteUri.StartsWith(callBack))
-            //    return;
+            if (e.Uri.AbsoluteUri.StartsWith(callBack) || (q.Contains(OAUTH_VERIFIER) && q.Contains(OAUTH_TOKEN)))
             {
                 e.Cancel = true;
                 WebBrowser1.Visibility = Visibility.Collapsed;
@@ -190,7 +188,6 @@ namespace FlickrAutoUploader
             {
                 Settings.UnsetTokens();
                 tgEnabled.IsChecked = false;
-                AuthAttempts = 0;
                 StartAuthProcess();
             }
         }
@@ -206,9 +203,9 @@ namespace FlickrAutoUploader
                 {
                     requestToken = tok.Result;
                     string url = f.OAuthCalculateAuthorizationUrl(requestToken.Token, AuthLevel.Write);
+                    WebBrowser1.Visibility = Visibility.Visible;
                     WebBrowser1.Navigate(new Uri(url));
                     //WebBrowser1.Margin = new Thickness(0, 0, 0, 0);
-                    WebBrowser1.Visibility = Visibility.Visible;
                 }
             });
         }
