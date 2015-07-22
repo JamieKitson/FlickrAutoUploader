@@ -60,54 +60,51 @@ namespace PhoneClassLibrary1
             {
                 Flickr f = MyFlickr.getFlickr();
                 IList<string> checkedAlbums = Settings.SelectedAlbums;
-
-                var x = from s in MediaSource.GetAvailableMediaSources() where (s.MediaSourceType == MediaSourceType.LocalDevice) select s;
-                Settings.DebugLog(x.Count() + " MediaSources found.");
-                foreach (MediaSource source in x)
+                // Apparently even without the where clause GetAvailableMediaSources will only ever return a single media source on Windows Phone
+                var sources = MediaSource.GetAvailableMediaSources().Where(s => s.MediaSourceType == MediaSourceType.LocalDevice);
+                if (sources.Count() != 1)
+                    throw new Exception(sources.Count() + " media sources found.");
+                MediaLibrary medLib = new MediaLibrary(sources.First());
+                IEnumerable<Picture> pics = medLib.RootPictureAlbum.Albums
+                    .Where(a => checkedAlbums.Contains(a.Name)) // Get selected albums
+                    .SelectMany(a => a.Pictures)                // Get all pictures from selected albums
+                    .Where(p => p.Date > Settings.StartFrom)    // Only pictures more recent than the last upload
+                    .OrderBy(p => p.Date);                      // Order by date taken so that we upload the oldest first
+                Settings.DebugLog(pics.Count() + " pics taken since " + Settings.StartFrom);
+                foreach (Picture p in pics)
                 {
-                    MediaLibrary medLib = new MediaLibrary(source);
-                    var albums = from a in medLib.RootPictureAlbum.Albums where checkedAlbums.Contains(a.Name) select a;
-                    Settings.DebugLog(albums.Count() + " albums found in " + source.Name + " for " + string.Join(", ", checkedAlbums));
-                    foreach (PictureAlbum album in albums)
-                    {
-                        var pics = from p in album.Pictures where p.Date > Settings.StartFrom orderby p.Date ascending select p;
-                        Settings.DebugLog(pics.Count() + " pics found in " + album.Name + " taken since " + Settings.StartFrom);
-                        foreach (Picture p in pics)
+                    Settings.DebugLog("Found picture " + p.Name);
+
+                    SHA1Managed hash = new SHA1Managed();
+                    hash.ComputeHash(p.GetImage());
+                    string hashTag = "checksum:sha1=" + BitConverter.ToString(hash.Hash).Replace("-", "");
+                    PhotoSearchOptions so = new PhotoSearchOptions("me", hashTag);
+                    flickrReturned = false;
+                    f.PhotosSearchAsync(so, (ret) =>
                         {
-                            Settings.DebugLog("Found picture " + p.Name);
-
-                            SHA1Managed hash = new SHA1Managed();
-                            hash.ComputeHash(p.GetImage());
-                            string hashTag = "checksum:sha1=" + BitConverter.ToString(hash.Hash).Replace("-", "");
-                            PhotoSearchOptions so = new PhotoSearchOptions("me", hashTag);
-                            flickrReturned = false;
-                            f.PhotosSearchAsync(so, (ret) =>
-                                {
-                                    searchResult = ret;
-                                    flickrReturned = true;
-                                });
-                            await waitForFlickrResult();
-                            if (searchResult.Result.Count > 0)
-                            {
-                                Settings.DebugLog("Already uploaded, skipping.");
-                                continue;
-                            }
-
-                            flickrReturned = false;
-                            bool isPublic = Settings.Privacy == Settings.ePrivacy.Public;
-                            bool isFriends = (Settings.Privacy & Settings.ePrivacy.Friends) > 0;
-                            bool isFamily = (Settings.Privacy & Settings.ePrivacy.Family) > 0;
-                            string tags = p.Name + ", " + hashTag + ", " + Settings.Tags;
-                            f.UploadPictureAsync(p.GetImage(), p.Name, p.Name, "", tags, isPublic, isFamily, isFriends, ContentType.Photo, SafetyLevel.Safe, HiddenFromSearch.Visible, (ret) =>
-                                {
-                                    uploadResult = ret;
-                                    flickrReturned = true;
-                                });
-                            await waitForFlickrResult();
-                            Settings.StartFrom = p.Date;
-                            Settings.LogInfo("Uploaded: " + p.Name);
-                        }
+                            searchResult = ret;
+                            flickrReturned = true;
+                        });
+                    await waitForFlickrResult();
+                    if (searchResult.Result.Count > 0)
+                    {
+                        Settings.DebugLog("Already uploaded, skipping.");
+                        continue;
                     }
+
+                    flickrReturned = false;
+                    bool isPublic = Settings.Privacy == Settings.ePrivacy.Public;
+                    bool isFriends = (Settings.Privacy & Settings.ePrivacy.Friends) > 0;
+                    bool isFamily = (Settings.Privacy & Settings.ePrivacy.Family) > 0;
+                    string tags = p.Name + ", " + hashTag + ", " + Settings.Tags;
+                    f.UploadPictureAsync(p.GetImage(), p.Name, p.Name, "", tags, isPublic, isFamily, isFriends, ContentType.Photo, SafetyLevel.Safe, HiddenFromSearch.Visible, (ret) =>
+                        {
+                            uploadResult = ret;
+                            flickrReturned = true;
+                        });
+                    await waitForFlickrResult();
+                    Settings.StartFrom = p.Date;
+                    Settings.LogInfo("Uploaded: " + p.Name);
                 }
             }
             catch (Exception ex)
