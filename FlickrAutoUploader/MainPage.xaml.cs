@@ -18,6 +18,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Collections.ObjectModel;
 using System.Windows.Media;
+using System.Net.NetworkInformation;
 
 namespace FlickrAutoUploader
 {
@@ -30,6 +31,10 @@ namespace FlickrAutoUploader
         public MainPage()
         {
             InitializeComponent();
+        }
+
+        private void PhoneApplicationPage_Loaded(object sender, RoutedEventArgs e)
+        {
             SetToggleCheck();
             LoadFolders();
             PopulatePrivacy();
@@ -71,11 +76,14 @@ namespace FlickrAutoUploader
             if (Settings.Enabled && (ScheduledActionService.Find(RIT_NAME) != null))
             {
                 tgEnabled.IsChecked = true;
-                MyFlickr.getFlickr().TestLoginAsync((ret) =>
-                    {
-                        if (ret.HasError)
-                            tgEnabled.IsChecked = false;
-                    });
+                if (NetworkInterface.GetIsNetworkAvailable())
+                {
+                    MyFlickr.getFlickr().TestLoginAsync((ret) =>
+                        {
+                            if (ret.HasError)
+                                tgEnabled.IsChecked = false;
+                        });
+                }
             }
             tgEnabled.Checked += tgEnabled_Checked;
         }
@@ -182,7 +190,12 @@ namespace FlickrAutoUploader
         private async void tgEnabled_Checked(object sender, RoutedEventArgs e)
         {
             //MessageBox.Show("checked");
-            if (await MyFlickr.Test())
+            if (!NetworkInterface.GetIsNetworkAvailable())
+            {
+                MessageBox.Show("Please re-try enabling when you have an internet connection available.");
+                tgEnabled.IsChecked = false;
+            }
+            else if (await MyFlickr.Test())
             {
                 AddScheduledTask();
             }
