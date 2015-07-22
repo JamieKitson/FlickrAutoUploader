@@ -46,7 +46,6 @@ namespace FlickrAutoUploader
 
         private void PopulatePrivacy()
         {
-            PrivacyPicker.SelectionChanged -= PrivacyPicker_SelectionChanged;
             PrivacyPicker.Items.Clear();
             Enum.GetValues(typeof(Settings.ePrivacy)).Cast<Settings.ePrivacy>().ToList().ForEach(v =>
             {
@@ -274,8 +273,7 @@ namespace FlickrAutoUploader
 
         private void PrivacyPicker_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if ((PrivacyPicker != null) && (PrivacyPicker.SelectedIndex > -1))
-                Settings.Privacy = (Settings.ePrivacy)PrivacyPicker.SelectedIndex;
+            Settings.Privacy = (Settings.ePrivacy)PrivacyPicker.SelectedIndex;
         }
 
         private void tbTags_TextChanged(object sender, TextChangedEventArgs e)

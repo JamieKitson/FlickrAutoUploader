@@ -67,7 +67,7 @@
                 <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="Max" VerticalAlignment="Top" Margin="409,324,0,0" RenderTransformOrigin="1.493,0.671"/>
                 <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Top" Margin="18,319,0,0" Text="Notifications: Min" />
                 <!-- PrivacyPicker and WebBrowser must always come last in that order so they show on top -->
-                <toolkit:ListPicker Margin="147,147,10,629" Name="PrivacyPicker" SelectionChanged="PrivacyPicker_SelectionChanged">
+                <toolkit:ListPicker Margin="147,147,10,629" Name="PrivacyPicker">
                     <toolkit:ListPicker.Items>
                         <toolkit:ListPickerItem Content="Private" />
                         <toolkit:ListPickerItem Content="Family" />
