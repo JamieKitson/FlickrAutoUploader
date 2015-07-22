@@ -58,7 +58,7 @@
                 <Button Content="Upload" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="111,697,0,0" Click="Button_Click_1"/>
                 <toolkit:DatePicker Margin="186,74,0,0" x:Name="dpUploadFrom" ValueChanged="dpUploadFrom_ValueChanged" HorizontalContentAlignment="Center" HorizontalAlignment="Left" VerticalAlignment="Top" />
                 <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="Upload from:" VerticalAlignment="Top" Margin="18,92,0,0" />
-                <toolkit:ToggleSwitch Margin="2,0,104,955" Content="Enabled" Checked="tgEnabled_Checked" x:Name="tgEnabled" Unchecked="tgEnabled_Unchecked" />
+                <toolkit:ToggleSwitch Margin="2,0,104,955" Content="Enabled" x:Name="tgEnabled" Unchecked="tgEnabled_Unchecked" />
                 <Button Content="Run" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="241,697,0,0" Click="Button_Click_2"/>
                 <TextBox HorizontalAlignment="Left" Height="72" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="392" Margin="66,222,-2,0" Name="tbTags" TextChanged="tbTags_TextChanged"/>
                 <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Top" Margin="18,167,0,0" Text="Visibility:" />

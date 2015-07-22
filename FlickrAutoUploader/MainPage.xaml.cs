@@ -31,17 +31,17 @@ namespace FlickrAutoUploader
         public MainPage()
         {
             InitializeComponent();
-        }
-
-        private void PhoneApplicationPage_Loaded(object sender, RoutedEventArgs e)
-        {
-            SetToggleCheck();
             LoadFolders();
             PopulatePrivacy();
             FixPrivacyItmemsBackground();
             dpUploadFrom.Value = Settings.StartFrom;
             tbTags.Text = Settings.Tags;
             slLogLevel.Value = Settings.LogLevel;
+        }
+
+        private void PhoneApplicationPage_Loaded(object sender, RoutedEventArgs e)
+        {
+            SetToggleCheck();
         }
 
         private void PopulatePrivacy()
@@ -71,7 +71,6 @@ namespace FlickrAutoUploader
 
         private void SetToggleCheck()
         {
-            tgEnabled.Checked -= tgEnabled_Checked;
             if (Settings.Enabled && (ScheduledActionService.Find(RIT_NAME) != null))
             {
                 tgEnabled.IsChecked = true;
