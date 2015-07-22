@@ -96,8 +96,10 @@ namespace PhoneClassLibrary1
                     bool isPublic = Settings.Privacy == Settings.ePrivacy.Public;
                     bool isFriends = (Settings.Privacy & Settings.ePrivacy.Friends) > 0;
                     bool isFamily = (Settings.Privacy & Settings.ePrivacy.Family) > 0;
-                    string tags = p.Name + ", " + hashTag + ", " + Settings.Tags;
-                    f.UploadPictureAsync(p.GetImage(), p.Name, p.Name, "", tags, isPublic, isFamily, isFriends, ContentType.Photo, SafetyLevel.Safe, HiddenFromSearch.Visible, (ret) =>
+                    string album = p.Album.Name;
+                    string tags = string.Join(", ", new string[] { p.Name, hashTag, Settings.Tags, "'" + album + "'" });
+                    ContentType ct = album == "Screenshots" ? ContentType.Screenshot : ContentType.Photo;
+                    f.UploadPictureAsync(p.GetImage(), p.Name, p.Name, "", tags, isPublic, isFamily, isFriends, ct, SafetyLevel.Safe, HiddenFromSearch.Visible, (ret) =>
                         {
                             uploadResult = ret;
                             flickrReturned = true;
