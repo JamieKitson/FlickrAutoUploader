@@ -75,9 +75,14 @@ namespace PhoneClassLibrary1
                 {
                     Settings.DebugLog("Found picture " + p.Name);
 
+                    /*
                     MD5Managed hash = new MD5Managed();
                     hash.ComputeHash(p.GetImage());
                     string hashTag = "file:md5sum=" + BitConverter.ToString(hash.Hash).Replace("-", string.Empty);
+                    */
+                    SHA1Managed hash = new SHA1Managed();
+                    hash.ComputeHash(p.GetImage());
+                    string hashTag = "file:sha1sig=" + BitConverter.ToString(hash.Hash).Replace("-", "");
                     string filenameTag = "file:name=" + p.Name;
                     PhotoSearchOptions so = new PhotoSearchOptions("me", hashTag);
                     flickrReturned = false;
