@@ -75,9 +75,10 @@ namespace PhoneClassLibrary1
                 {
                     Settings.DebugLog("Found picture " + p.Name);
 
-                    SHA1Managed hash = new SHA1Managed();
+                    MD5Managed hash = new MD5Managed();
                     hash.ComputeHash(p.GetImage());
-                    string hashTag = "checksum:sha1=" + BitConverter.ToString(hash.Hash).Replace("-", "");
+                    string hashTag = "file:md5sum=" + BitConverter.ToString(hash.Hash).Replace("-", string.Empty);
+                    string filenameTag = "file:name=" + p.Name;
                     PhotoSearchOptions so = new PhotoSearchOptions("me", hashTag);
                     flickrReturned = false;
                     f.PhotosSearchAsync(so, (ret) =>
@@ -97,9 +98,9 @@ namespace PhoneClassLibrary1
                     bool isFriends = (Settings.Privacy & Settings.ePrivacy.Friends) > 0;
                     bool isFamily = (Settings.Privacy & Settings.ePrivacy.Family) > 0;
                     string album = p.Album.Name;
-                    string tags = string.Join(", ", new string[] { p.Name, hashTag, Settings.Tags, "'" + album + "'" });
+                    string tags = string.Join(", ", new string[] { filenameTag, hashTag, Settings.Tags, "\"" + album + "\"" });
                     ContentType ct = album == "Screenshots" ? ContentType.Screenshot : ContentType.Photo;
-                    f.UploadPictureAsync(p.GetImage(), p.Name, p.Name, "", tags, isPublic, isFamily, isFriends, ct, SafetyLevel.Safe, HiddenFromSearch.Visible, (ret) =>
+                    f.UploadPictureAsync(p.GetImage(), p.Name, p.Name, string.Empty, tags, isPublic, isFamily, isFriends, ct, SafetyLevel.Safe, HiddenFromSearch.Visible, (ret) =>
                         {
                             uploadResult = ret;
                             flickrReturned = true;
