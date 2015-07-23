@@ -125,7 +125,7 @@ namespace PhoneClassLibrary1
         private const string TAGS = "tags";
         public static string Tags
         {
-            get { return GetSetting(TAGS, "wpflickrautouploader"); }
+            get { return GetSetting(TAGS, "wpautouploader"); }
             set { SetSetting(TAGS, value); }
         }
 
