@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Deployment xmlns="http://schemas.microsoft.com/windowsphone/2014/deployment" AppPlatformVersion="8.1">
   <DefaultLanguage xmlns="" code="en-US" />
-  <App xmlns="" ProductID="{a8d961f4-04a8-4b46-8a60-80a17ad23afa}" Title="Flickr Auto Uploader" RuntimeType="Silverlight" Version="1.0.0.0" Genre="apps.normal" Author="FlickrAutoUploader author" Description="Auto uploads photos to Flickr." Publisher="FlickrAutoUploader" PublisherID="{1e12b22f-b382-41f9-9b03-e4c23d927dad}">
+  <App xmlns="" ProductID="{a8d961f4-04a8-4b46-8a60-80a17ad23afa}" Title="Flickr Auto Uploader" RuntimeType="Silverlight" Version="1.0.0.0" Genre="apps.normal" Author="Jamie Kitosn" Description="Auto uploads photos to Flickr." Publisher="Jamie Kitson" PublisherID="{1e12b22f-b382-41f9-9b03-e4c23d927dad}">
     <IconPath IsRelative="true" IsResource="false">Assets\ApplicationIcon.png</IconPath>
     <Capabilities>
       <Capability Name="ID_CAP_NETWORKING" />
@@ -19,11 +19,16 @@
           <Count>0</Count>
           <BackgroundImageURI IsRelative="true" IsResource="false">Assets\Tiles\FlipCycleTileMedium.png</BackgroundImageURI>
           <Title>Flickr Auto Uploader</Title>
-          <BackContent></BackContent>
-          <BackBackgroundImageURI></BackBackgroundImageURI>
-          <BackTitle></BackTitle>
-          <DeviceLockImageURI></DeviceLockImageURI>
-          <HasLarge></HasLarge>
+          <BackContent>
+          </BackContent>
+          <BackBackgroundImageURI>
+          </BackBackgroundImageURI>
+          <BackTitle>
+          </BackTitle>
+          <DeviceLockImageURI>
+          </DeviceLockImageURI>
+          <HasLarge>
+          </HasLarge>
         </TemplateFlip>
       </PrimaryToken>
     </Tokens>
