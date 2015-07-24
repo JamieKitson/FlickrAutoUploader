@@ -27,6 +27,7 @@ namespace FlickrAutoUploader
         const string CALL_BACK = "http://kitten-x.com";
         const string RIT_NAME = "FlickrAutoUploader";
         OAuthRequestToken requestToken;
+        int AuthAttempts;
 
         public MainPage()
         {
@@ -88,6 +89,7 @@ namespace FlickrAutoUploader
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
+            AuthAttempts = 0;
             StartAuthProcess();
         }
 
@@ -97,6 +99,9 @@ namespace FlickrAutoUploader
             const string OAUTH_VERIFIER = "oauth_verifier";
             const string OAUTH_TOKEN = "oauth_token";
             string q = e.Uri.Query;
+            // Sometimes we end up here instead of the authorisation page
+            if ((e.Uri.AbsoluteUri == "https://m.flickr.com/#/home") && (AuthAttempts++ < 3))
+                StartAuthProcess();
             if (e.Uri.AbsoluteUri.StartsWith(CALL_BACK) || (q.Contains(OAUTH_VERIFIER) && q.Contains(OAUTH_TOKEN)))
             {
                 e.Cancel = true;
@@ -198,6 +203,7 @@ namespace FlickrAutoUploader
             {
                 Settings.UnsetTokens();
                 tgEnabled.IsChecked = false;
+                AuthAttempts = 0;
                 StartAuthProcess();
             }
         }
