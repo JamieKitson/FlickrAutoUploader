@@ -134,8 +134,7 @@ namespace FlickrAutoUploader
 
         private void LoadFolders()
         {
-            Grid1.Children.Clear();
-            //const int CB_HEIGHT = 50;
+            Folders.Children.Clear();
             double t = 0;
             IList<string> checkedAlbums = Settings.SelectedAlbums;
             foreach (MediaSource source in MediaSource.GetAvailableMediaSources())
@@ -151,14 +150,12 @@ namespace FlickrAutoUploader
                         cb.IsChecked = checkedAlbums.Contains(album.Name);
                         cb.Checked += Album_Checked;
                         cb.Unchecked += Album_Unchecked;
-                        Grid1.Children.Add(cb);
-                        cb.Margin = new Thickness(0, t, 0, 0); // Grid1.Height - t - CB_HEIGHT);
-                        //cb.Height = 72;
-                        t += 60;
+                        Folders.Children.Add(cb);
+                        t += 50;
                     }
                 }
             }
-            Grid1.Height = t + 60;
+            Folders.Height = t + 100; // Not sure why this needs to be twice the height.
         }
 
         private void Album_Checked(object sender, RoutedEventArgs e)
@@ -218,7 +215,6 @@ namespace FlickrAutoUploader
                     string url = f.OAuthCalculateAuthorizationUrl(requestToken.Token, AuthLevel.Write);
                     WebBrowser1.Visibility = Visibility.Visible;
                     WebBrowser1.Navigate(new Uri(url));
-                    //WebBrowser1.Margin = new Thickness(0, 0, 0, 0);
                 }
             });
         }

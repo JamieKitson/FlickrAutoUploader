@@ -11,7 +11,7 @@
     FontFamily="{StaticResource PhoneFontFamilyNormal}"
     FontSize="{StaticResource PhoneFontSizeNormal}"
     Foreground="{StaticResource PhoneForegroundBrush}"
-    SupportedOrientations="Portrait" Orientation="Portrait"
+    SupportedOrientations="PortraitOrLandscape" Orientation="Portrait"
     shell:SystemTray.IsVisible="True" Loaded="PhoneApplicationPage_Loaded">
 
     <!--LayoutRoot is the root grid where all page content is placed-->
@@ -21,72 +21,58 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- LOCALIZATION NOTE:
-            To localize the displayed strings copy their values to appropriately named
-            keys in the app's neutral language resource file (AppResources.resx) then
-            replace the hard-coded text value between the attributes' quotation marks
-            with the binding clause whose path points to that string name.
+        <TextBlock Text="Flickr Auto Uploader" Style="{StaticResource PhoneTextNormalStyle}" Margin="12,17,0,28" Name="Title"/>
 
-            For example:
-
-                Text="{Binding Path=LocalizedResources.ApplicationTitle, Source={StaticResource LocalizedStrings}}"
-
-            This binding points to the template's string resource named "ApplicationTitle".
-
-            Adding supported languages in the Project Properties tab will create a
-            new resx file per language that can carry the translated values of your
-            UI strings. The binding in these examples will cause the value of the
-            attributes to be drawn from the .resx file that matches the
-            CurrentUICulture of the app at run time.
-         -->
-
-        <!--TitlePanel contains the name of the application and page title-->
-        <StackPanel x:Name="TitlePanel" Grid.Row="0" Margin="12,17,0,28">
-            <TextBlock Text="Flickr Auto Uploader" Style="{StaticResource PhoneTextNormalStyle}" Margin="12,0"/>
-        </StackPanel>
-
-        <!--ContentPanel - place additional content here-->
-        <ScrollViewer Width="456" Margin="12,0" Grid.Row="1">
-            <Grid x:Name="ContentPanel" Height="1073" Width="456" VerticalAlignment="Top" HorizontalAlignment="Left">
-
-                <Button Content="Auth" HorizontalAlignment="Left" VerticalAlignment="Top" Click="Button_Click" Margin="0,697,0,0"/>
-                <TextBox HorizontalAlignment="Left" Height="72" Margin="0,769,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="456" x:Name="TextBox1"/>
-                <Grid HorizontalAlignment="Left" Height="145" Margin="10,374,0,0" VerticalAlignment="Top" Width="436" x:Name="Grid1" RenderTransformOrigin="0.498,1.141" >
-                    <CheckBox Content="Camera Roll" HorizontalAlignment="Left" VerticalAlignment="Top" IsChecked="True"/>
-                    <CheckBox Content="Screenshots" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,54,0,0"/>
-                </Grid>
-                <Button Content="Upload" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="111,697,0,0" Click="Button_Click_1"/>
-                <toolkit:DatePicker Margin="186,74,0,0" x:Name="dpUploadFrom" ValueChanged="dpUploadFrom_ValueChanged" HorizontalContentAlignment="Center" HorizontalAlignment="Left" VerticalAlignment="Top" />
-                <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="Upload from:" VerticalAlignment="Top" Margin="18,92,0,0" />
-                <toolkit:ToggleSwitch Margin="2,0,104,955" Content="Enabled" x:Name="tgEnabled" Unchecked="tgEnabled_Unchecked" />
-                <Button Content="Run" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="241,697,0,0" Click="Button_Click_2"/>
-                <TextBox HorizontalAlignment="Left" Height="72" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="392" Margin="66,222,-2,0" Name="tbTags" TextChanged="tbTags_TextChanged"/>
-                <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Top" Margin="18,167,0,0" Text="Visibility:" />
-                <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="Tags:" VerticalAlignment="Top" Margin="18,247,0,0"/>
-                <Slider HorizontalAlignment="Left" VerticalAlignment="Top" Width="218" Margin="179,304,0,0" Maximum="2" SmallChange="1" Height="92" ValueChanged="Slider_ValueChanged" Name="slLogLevel" />
-                <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="Max" VerticalAlignment="Top" Margin="409,324,0,0" RenderTransformOrigin="1.493,0.671"/>
-                <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Top" Margin="18,319,0,0" Text="Notifications: Min" />
-                <!-- PrivacyPicker and WebBrowser must always come last in that order so they show on top -->
-                <toolkit:ListPicker Margin="147,147,10,629" Name="PrivacyPicker">
-                    <toolkit:ListPicker.Items>
-                        <toolkit:ListPickerItem Content="Private" />
+        <ScrollViewer Grid.Row="1" Name="ScrollPanel">
+            <StackPanel x:Name="ContentPanel" Margin="10,0,0,0">
+                <toolkit:ToggleSwitch Content="Enabled" x:Name="tgEnabled" Unchecked="tgEnabled_Unchecked" Height="102" Margin="-12,0,0,0" HorizontalAlignment="Left" Width="375" />
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="Upload from:" VerticalAlignment="Center" Width="215"/>
+                    <toolkit:DatePicker x:Name="dpUploadFrom" ValueChanged="dpUploadFrom_ValueChanged" HorizontalContentAlignment="Center" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Top" Text="Visibility:" Width="89" Margin="0,30,0,0" />
+                    <toolkit:ListPicker x:Name="PrivacyPicker" Width="254">
+                        <toolkit:ListPickerItem Content="Private" VerticalAlignment="Top" />
                         <toolkit:ListPickerItem Content="Family" />
                         <toolkit:ListPickerItem Content="Friends" />
                         <toolkit:ListPickerItem Content="Friends &amp; Family" />
                         <toolkit:ListPickerItem Content="Public" />
-                    </toolkit:ListPicker.Items>
-                </toolkit:ListPicker>
-                <phone:WebBrowser HorizontalAlignment="Left" Margin="0,10,0,0" VerticalAlignment="Top" Height="661" Width="456" x:Name="WebBrowser1" Navigating="WebBrowser1_Navigating" Visibility="Collapsed" IsScriptEnabled="True"/>
-            </Grid>
+                    </toolkit:ListPicker>
+                </StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="Tags:" VerticalAlignment="Center" Margin="0,21,0,20" Width="90" />
+                    <TextBox Grid.Column="1" Height="72" TextWrapping="Wrap" Text="TextBox" x:Name="tbTags" TextChanged="tbTags_TextChanged" HorizontalContentAlignment="Left" />
+                </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Top" Text="Notifications: Min" Margin="0,15,0,0" />
+                    <Slider Grid.Column="1" VerticalAlignment="Top" Maximum="2" SmallChange="1" Height="86" ValueChanged="Slider_ValueChanged" Name="slLogLevel" />
+                    <TextBlock Grid.Column="2" HorizontalAlignment="Right" TextWrapping="Wrap" Text="Max" RenderTransformOrigin="1.493,0.671" VerticalAlignment="Top" Margin="0,15,0,0" Grid.ColumnSpan="2" Width="57"/>
+                </Grid>
+                <StackPanel Name="Folders">
+                    <CheckBox Content="Camera Roll" HorizontalAlignment="Left" VerticalAlignment="Top" IsChecked="True"/>
+                    <CheckBox Content="Screenshots" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                </StackPanel>
+                <StackPanel Name="DebugPanel" Visibility="Collapsed">
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="Auth" HorizontalAlignment="Left" VerticalAlignment="Top" Click="Button_Click" />
+                        <Button Content="Upload" HorizontalAlignment="Left" VerticalAlignment="Top"  Click="Button_Click_1"/>
+                        <Button Content="Run" HorizontalAlignment="Left" VerticalAlignment="Top" Click="Button_Click_2"/>
+                    </StackPanel>
+                    <TextBox HorizontalAlignment="Left" Height="72" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="456" x:Name="TextBox1"/>
+                </StackPanel>
+            </StackPanel>
         </ScrollViewer>
-
-        <!--Uncomment to see an alignment grid to help ensure your controls are
-            aligned on common boundaries.  The image has a top margin of -32px to
-            account for the System Tray. Set this to 0 (or remove the margin altogether)
-            if the System Tray is hidden.
-
-            Before shipping remove this XAML and the image itself.-->
-        <!--<Image Source="/Assets/AlignmentGrid.png" VerticalAlignment="Top" Height="800" Width="480" Margin="0,-32,0,0" Grid.Row="0" Grid.RowSpan="2" IsHitTestVisible="False" />-->
+        <phone:WebBrowser Grid.Row="1" x:Name="WebBrowser1" Navigating="WebBrowser1_Navigating" Visibility="Collapsed" IsScriptEnabled="True"/>
     </Grid>
 
 </phone:PhoneApplicationPage>
