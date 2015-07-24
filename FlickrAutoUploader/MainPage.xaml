@@ -21,17 +21,17 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Text="Flickr Auto Uploader" Style="{StaticResource PhoneTextNormalStyle}" Margin="12,17,0,28" Name="Title"/>
+        <TextBlock Text="Flickr Auto Uploader" Style="{StaticResource PhoneTextNormalStyle}" Margin="20,17,0,20" Name="Title"/>
 
         <ScrollViewer Grid.Row="1" Name="ScrollPanel">
             <StackPanel x:Name="ContentPanel" Margin="10,0,0,0">
-                <toolkit:ToggleSwitch Content="Enabled" x:Name="tgEnabled" Unchecked="tgEnabled_Unchecked" Height="102" Margin="-12,0,0,0" HorizontalAlignment="Left" Width="375" />
+                <toolkit:ToggleSwitch Content="Enabled" x:Name="tgEnabled" Unchecked="tgEnabled_Unchecked" HorizontalAlignment="Left" Width="422" Margin="-12,0,0,0" />
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="Upload from:" VerticalAlignment="Center" Width="215"/>
+                    <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" Width="249" Text="Upload photos taken since:" />
                     <toolkit:DatePicker x:Name="dpUploadFrom" ValueChanged="dpUploadFrom_ValueChanged" HorizontalContentAlignment="Center" HorizontalAlignment="Left" VerticalAlignment="Center" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Top" Text="Visibility:" Width="89" Margin="0,30,0,0" />
+                    <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" Text="Privacy:" Width="131" />
                     <toolkit:ListPicker x:Name="PrivacyPicker" Width="254">
                         <toolkit:ListPickerItem Content="Private" VerticalAlignment="Top" />
                         <toolkit:ListPickerItem Content="Family" />
@@ -55,9 +55,10 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Top" Text="Notifications: Min" Margin="0,15,0,0" />
-                    <Slider Grid.Column="1" VerticalAlignment="Top" Maximum="2" SmallChange="1" Height="86" ValueChanged="Slider_ValueChanged" Name="slLogLevel" />
+                    <Slider Grid.Column="1" VerticalAlignment="Top" Maximum="2" SmallChange="1" ValueChanged="Slider_ValueChanged" Name="slLogLevel" />
                     <TextBlock Grid.Column="2" HorizontalAlignment="Right" TextWrapping="Wrap" Text="Max" RenderTransformOrigin="1.493,0.671" VerticalAlignment="Top" Margin="0,15,0,0" Grid.ColumnSpan="2" Width="57"/>
                 </Grid>
+                <TextBlock Text="Folders:"/>
                 <StackPanel Name="Folders">
                     <CheckBox Content="Camera Roll" HorizontalAlignment="Left" VerticalAlignment="Top" IsChecked="True"/>
                     <CheckBox Content="Screenshots" HorizontalAlignment="Left" VerticalAlignment="Top" />
