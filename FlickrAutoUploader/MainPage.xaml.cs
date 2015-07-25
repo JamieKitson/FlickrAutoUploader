@@ -155,12 +155,11 @@ namespace FlickrAutoUploader
                         cb.IsChecked = checkedAlbums.Contains(album.Name);
                         cb.Checked += Album_Checked;
                         cb.Unchecked += Album_Unchecked;
+                        cb.Margin = new Thickness(0, 0, 0, -10);
                         Folders.Children.Add(cb);
-                        t += 50;
                     }
                 }
             }
-            Folders.Height = t + 100; // Not sure why this needs to be twice the height.
         }
 
         private void Album_Checked(object sender, RoutedEventArgs e)
