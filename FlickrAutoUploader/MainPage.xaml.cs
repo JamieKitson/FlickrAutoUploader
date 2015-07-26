@@ -140,7 +140,6 @@ namespace FlickrAutoUploader
         private void LoadFolders()
         {
             Folders.Children.Clear();
-            double t = 0;
             IList<string> checkedAlbums = Settings.SelectedAlbums;
             foreach (MediaSource source in MediaSource.GetAvailableMediaSources())
             {

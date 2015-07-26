@@ -21,7 +21,7 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Text="Flickr Auto Uploader" Style="{StaticResource PhoneTextNormalStyle}" Margin="20,17,0,20" Name="Title"/>
+        <TextBlock Text="Flickr Auto Uploader" Style="{StaticResource PhoneTextNormalStyle}" Margin="20,17,0,20" />
 
         <ScrollViewer Grid.Row="1" Name="ScrollPanel">
             <StackPanel x:Name="ContentPanel" Margin="10,0,0,0">
