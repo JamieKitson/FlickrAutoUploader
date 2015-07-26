@@ -3,7 +3,7 @@
   <Identity Name="51449JamieKitson.FlickrAutoUploader" Publisher="CN=73E2EF68-97F0-44FF-AB69-C25D8B3C6AA7" Version="1.1.0.0" />
   <mp:PhoneIdentity PhoneProductId="a8d961f4-04a8-4b46-8a60-80a17ad23afa" PhonePublisherId="1e12b22f-b382-41f9-9b03-e4c23d927dad" />
   <Properties>
-    <DisplayName>FlickrAutoUploader</DisplayName>
+    <DisplayName>Flickr Auto Uploader</DisplayName>
     <PublisherDisplayName>Jamie Kitson</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
