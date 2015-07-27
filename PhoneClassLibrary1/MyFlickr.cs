@@ -134,6 +134,24 @@ namespace PhoneClassLibrary1
                 //TextBox1.Text = "Success";
         }
 
+        private static FlickrResult<PhotosetCollection> AlbumListResult;
+        public static async Task<Dictionary<string, string>> GetAlbums()
+        {
+            Flickr f = MyFlickr.getFlickr();
+            flickrReturned = false;
+            AlbumListResult = null;
+            f.PhotosetsGetListAsync(0, 10, (ret) => {
+                flickrReturned = true;
+                AlbumListResult = ret;
+            });
+            await waitForFlickrResult();
+            Dictionary<string, string> res = new Dictionary<string, string>();
+            if (AlbumListResult.HasError)
+                return res;
+            AlbumListResult.Result.ToList().ForEach(album => res.Add(album.PhotosetId, album.Description));
+            return res;
+        }
+
     }
 
 

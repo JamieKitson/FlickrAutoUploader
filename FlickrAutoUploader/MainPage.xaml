@@ -33,7 +33,7 @@
                 <StackPanel Orientation="Horizontal">
                     <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" Text="Privacy:" Width="131" />
                     <toolkit:ListPicker x:Name="PrivacyPicker" Width="254">
-                        <toolkit:ListPickerItem Content="Private" VerticalAlignment="Top" />
+                        <toolkit:ListPickerItem Content="Private" />
                         <toolkit:ListPickerItem Content="Family" />
                         <toolkit:ListPickerItem Content="Friends" />
                         <toolkit:ListPickerItem Content="Friends &amp; Family" />
@@ -52,13 +52,23 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Album:" VerticalAlignment="Center"/>
+                    <toolkit:ListPicker Grid.Column="1" Name="DestAlbum" SelectionChanged="DestAlbum_SelectionChanged" ExpansionMode="FullScreenOnly">
+                        <toolkit:ListPickerItem Content="Load Albums" HorizontalAlignment="Center" Name="LoadDestAlbums" Tap="LoadDestAlbums_Tap" />
+                    </toolkit:ListPicker>
+                </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Top" Text="Notifications: Min" Margin="0,25,0,0" />
                     <Slider Grid.Column="1" VerticalAlignment="Top" Maximum="2" SmallChange="1" ValueChanged="Slider_ValueChanged" Name="slLogLevel" Margin="0,10,0,-15" />
                     <TextBlock Grid.Column="2" HorizontalAlignment="Right" TextWrapping="Wrap" Text="Max" RenderTransformOrigin="1.493,0.671" VerticalAlignment="Top" Margin="0,25,0,0" Grid.ColumnSpan="2" Width="57"/>
                 </Grid>
-                <TextBlock Text="Folders:" Margin="0,0,0,10"/>
+                <TextBlock Text="Upload from:" Margin="0,0,0,10"/>
                 <StackPanel Name="Folders">
                     <CheckBox Content="Camera Roll" HorizontalAlignment="Left" VerticalAlignment="Top" IsChecked="True" Margin="0,0,0,-20"/>
                     <CheckBox Content="Screenshots" HorizontalAlignment="Left" VerticalAlignment="Top" />

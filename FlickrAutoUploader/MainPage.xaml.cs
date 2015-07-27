@@ -294,5 +294,27 @@ namespace FlickrAutoUploader
             WebBrowser1.NavigateToString("<pre>" + Settings.GetLog() + "</pre>");
         }
 
+        private void DestAlbum_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            // MessageBox.Show("hi");
+        }
+
+        private void DestAlbum_Tap(object sender, System.Windows.Input.GestureEventArgs e)
+        {
+            if (DestAlbum.Items.Count() < 3)
+                LoadAlbums();
+        }
+
+        private async void LoadAlbums()
+        {
+            Dictionary<string, string> albums = await MyFlickr.GetAlbums();
+            DestAlbum.DataContext = albums;
+        }
+
+        private void LoadDestAlbums_Tap(object sender, System.Windows.Input.GestureEventArgs e)
+        {
+            LoadAlbums();
+        }
+
     }
 }
