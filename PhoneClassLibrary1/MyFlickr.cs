@@ -54,9 +54,9 @@ namespace PhoneClassLibrary1
 
         public static async Task Upload()
         {
+            Settings.ClearLog();
             try
             {
-                Settings.ClearLog();
                 Flickr f = MyFlickr.getFlickr();
                 IList<string> checkedAlbums = Settings.SelectedAlbums;
                 // Apparently even without the where clause GetAvailableMediaSources will only ever return a single media source on Windows Phone

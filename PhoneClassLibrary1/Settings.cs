@@ -199,11 +199,12 @@ namespace PhoneClassLibrary1
             try
             {
                 using (var store = IsolatedStorageFile.GetUserStoreForApplication())
-                using (var file = store.OpenFile(LOG, FileMode.OpenOrCreate))
                 {
                     string log;
+                    using (var file = store.OpenFile(LOG, FileMode.OpenOrCreate))
                     using (var reader = new System.IO.StreamReader(file))
                         log = reader.ReadToEnd();
+
                     List<string> lines = log.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries).ToList();
                     bool removed = false;
                     while (lines.Count > 0)
@@ -212,7 +213,7 @@ namespace PhoneClassLibrary1
                         if (ss.Count() == 2)
                         {
                             DateTime dt;
-                            if (DateTime.TryParse(ss[0], out dt) && (DateTime.Now - dt < new TimeSpan(24, 0, 0)))
+                            if (DateTime.TryParse(ss[0], out dt) && (DateTime.Now - dt < new TimeSpan(0, 30, 0)))
                                 break;
                         }
                         lines.RemoveAt(0);
@@ -220,10 +221,11 @@ namespace PhoneClassLibrary1
                     }
                     if (removed)
                     {
-                        file.SetLength(0);
-                        using (StreamWriter writer = new StreamWriter(file))
+                        using (var file = store.OpenFile(LOG, FileMode.OpenOrCreate))
                         {
-                            writer.Write(string.Join(Environment.NewLine, lines));
+                            file.SetLength(0);
+                            using (StreamWriter writer = new StreamWriter(file))
+                                writer.Write(string.Join(Environment.NewLine, lines));
                         }
                     }
                 }
