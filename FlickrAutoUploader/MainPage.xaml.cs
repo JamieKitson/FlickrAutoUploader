@@ -288,5 +288,11 @@ namespace FlickrAutoUploader
             emailComposeTask.Show();
         }
 
+        private void ViewLog_Click(object sender, RoutedEventArgs e)
+        {
+            WebBrowser1.Visibility = Visibility.Visible;
+            WebBrowser1.NavigateToString("<pre>" + Settings.GetLog() + "</pre>");
+        }
+
     }
 }

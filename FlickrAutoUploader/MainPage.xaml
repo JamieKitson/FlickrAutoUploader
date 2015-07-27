@@ -71,7 +71,11 @@
                     </StackPanel>
                     <TextBox HorizontalAlignment="Left" Height="72" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="456" x:Name="TextBox1"/>
                 </StackPanel>
-                <Button Content="Email Log" Name="EmailLog" Click="EmailLog_Click"/>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Log:" VerticalAlignment="Center" />
+                    <Button Content="View Log" Name="ViewLog" Click="ViewLog_Click"/>
+                    <Button Content="Email Log" Name="EmailLog" Click="EmailLog_Click"/>
+                </StackPanel>
             </StackPanel>
         </ScrollViewer>
         <phone:WebBrowser Grid.Row="1" x:Name="WebBrowser1" Navigating="WebBrowser1_Navigating" Visibility="Collapsed" IsScriptEnabled="True"/>
