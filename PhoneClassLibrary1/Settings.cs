@@ -213,7 +213,7 @@ namespace PhoneClassLibrary1
                         if (ss.Count() == 2)
                         {
                             DateTime dt;
-                            if (DateTime.TryParse(ss[0], out dt) && (DateTime.Now - dt < new TimeSpan(0, 30, 0)))
+                            if (DateTime.TryParse(ss[0], out dt) && (DateTime.Now - dt < new TimeSpan(24, 0, 0)))
                                 break;
                         }
                         lines.RemoveAt(0);
