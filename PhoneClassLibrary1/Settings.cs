@@ -3,10 +3,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.IO;
 using System.IO.IsolatedStorage;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace PhoneClassLibrary1
 {
@@ -15,23 +18,54 @@ namespace PhoneClassLibrary1
 
         private static T GetSetting<T>(string name, T defVal)
         {
-            IsolatedStorageSettings s = IsolatedStorageSettings.ApplicationSettings;
-            if (s.Contains(name))
+            Mutex mutexFile = new Mutex(false, name);
+            mutexFile.WaitOne();
+            try
             {
-                return (T)s[name];
+                using (var store = IsolatedStorageFile.GetUserStoreForApplication())
+                {
+                    if (store.FileExists(name))
+                    {
+                        XmlSerializer x = new XmlSerializer(typeof(T));
+                        using (var file = store.OpenFile(name, FileMode.Open))
+                            return (T)x.Deserialize(file);
+                    }
+                }
             }
-            else
+            finally
             {
-                SetSetting(name, defVal);
-                return defVal;
+                mutexFile.ReleaseMutex();
             }
+            return defVal;
         }
 
         private static void SetSetting<T>(string name, T val)
         {
-            IsolatedStorageSettings s = IsolatedStorageSettings.ApplicationSettings;
-            s[name] = val;
-            s.Save();
+            Mutex mutexFile = new Mutex(false, name);
+            mutexFile.WaitOne();
+            try
+            {
+                using (var store = IsolatedStorageFile.GetUserStoreForApplication())
+                {
+                    XmlSerializer x = new XmlSerializer(typeof(T));
+                    using (var file = store.OpenFile(name, FileMode.OpenOrCreate))
+                    {
+                        file.SetLength(0);
+                        x.Serialize(file, val);
+                    }
+                }
+            }
+            finally
+            {
+                mutexFile.ReleaseMutex();
+            }
+        }
+
+        private static IList<string> GetSettingList(string name, string defVal)
+        {
+            var ol = GetSetting(name, new ObservableCollection<string>(new string[] { defVal }));
+            ol.CollectionChanged += delegate(object sender, NotifyCollectionChangedEventArgs e) { SetSetting(name, ol); };
+            return ol;
         }
 
         private const string TOKEN = "token";
@@ -62,12 +96,7 @@ namespace PhoneClassLibrary1
         private const string ALBUMS = "albums";
         public static IList<string> SelectedAlbums
         {
-            get 
-            { 
-                var ol = GetSetting(ALBUMS, new ObservableCollection<string>(new string[] { "Camera Roll" }));
-                ol.CollectionChanged += delegate(object sender, NotifyCollectionChangedEventArgs e) { SetSetting(ALBUMS, ol); };
-                return ol;
-            }
+            get { return GetSettingList(ALBUMS, "Camera Roll"); }
             set { SetSetting(ALBUMS, value); }
         }
 
@@ -85,25 +114,26 @@ namespace PhoneClassLibrary1
             set { SetSetting(ENABLED, value); }
         }
 
-        private static void Log(string msg, int level)
+        private static void DoLog(string msg, int level)
         {
+            LogLine(DateTime.Now.ToString("s") + " " + level + " " + msg);
             if (level <= LogLevel)
                 ToastMessage(msg);
         }
 
         public static void ErrorLog(string msg)
         {
-            Log(msg, 0);
+            DoLog(msg, 0);
         }
 
         public static void LogInfo(string msg)
         {
-            Log(msg, 1);
+            DoLog(msg, 1);
         }
 
         public static void DebugLog(string msg)
         {
-            Log(msg, 2);
+            DoLog(msg, 2);
         }
 
         private static void ToastMessage(string msg)
@@ -141,6 +171,84 @@ namespace PhoneClassLibrary1
         {
             get { return GetSetting<double>(LOG_LEVEL, 0); }
             set { SetSetting(LOG_LEVEL, value); }
+        }
+
+        private const string LOG = "log";
+
+        private static void LogLine(string msg)
+        {
+            Mutex mutexFile = new Mutex(false, LOG);
+            mutexFile.WaitOne();
+            try
+            {
+                using (var store = IsolatedStorageFile.GetUserStoreForApplication())
+                using (var file = store.OpenFile(LOG, FileMode.Append))
+                using (StreamWriter writer = new StreamWriter(file))
+                    writer.WriteLine(msg);
+            }
+            finally
+            {
+                mutexFile.ReleaseMutex();
+            }
+        }
+
+        public static void ClearLog()
+        {
+            Mutex mutexFile = new Mutex(false, LOG);
+            mutexFile.WaitOne();
+            try
+            {
+                using (var store = IsolatedStorageFile.GetUserStoreForApplication())
+                using (var file = store.OpenFile(LOG, FileMode.OpenOrCreate))
+                {
+                    string log;
+                    using (var reader = new System.IO.StreamReader(file))
+                        log = reader.ReadToEnd();
+                    List<string> lines = log.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                    bool removed = false;
+                    while (lines.Count > 0)
+                    {
+                        string[] ss = lines[0].Split(new char[] { ' ' }, 2);
+                        if (ss.Count() == 2)
+                        {
+                            DateTime dt;
+                            if (DateTime.TryParse(ss[0], out dt) && (DateTime.Now - dt < new TimeSpan(24, 0, 0)))
+                                break;
+                        }
+                        lines.RemoveAt(0);
+                        removed = true;
+                    }
+                    if (removed)
+                    {
+                        file.SetLength(0);
+                        using (StreamWriter writer = new StreamWriter(file))
+                        {
+                            writer.Write(string.Join(Environment.NewLine, lines));
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                mutexFile.ReleaseMutex();
+            }
+        }
+
+        public static string GetLog()
+        {
+            Mutex mutexFile = new Mutex(false, LOG);
+            mutexFile.WaitOne();
+            try
+            {
+                using (var store = IsolatedStorageFile.GetUserStoreForApplication())
+                using (var file = store.OpenFile(LOG, FileMode.OpenOrCreate))
+                using (var reader = new System.IO.StreamReader(file))
+                    return reader.ReadToEnd();
+            }
+            finally
+            {
+                mutexFile.ReleaseMutex();
+            }
         }
 
     }

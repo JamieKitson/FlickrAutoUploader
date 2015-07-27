@@ -30,7 +30,7 @@ namespace PhoneClassLibrary1
             return f;
         }
 
-        private static FlickrResult<FoundUser> testResult;
+        public static FlickrResult<FoundUser> testResult;
 
         public static async Task<bool> Test()
         {
@@ -45,9 +45,7 @@ namespace PhoneClassLibrary1
                     flickrReturned = true;
                 });
             await waitForFlickrResult();
-            if ((testResult == null) || (testResult.HasError))
-                return false;
-            return true;
+            return (testResult != null) && (!testResult.HasError);
         }
 
         private static FlickrResult<string> uploadResult;
@@ -58,6 +56,7 @@ namespace PhoneClassLibrary1
         {
             try
             {
+                Settings.ClearLog();
                 Flickr f = MyFlickr.getFlickr();
                 IList<string> checkedAlbums = Settings.SelectedAlbums;
                 // Apparently even without the where clause GetAvailableMediaSources will only ever return a single media source on Windows Phone

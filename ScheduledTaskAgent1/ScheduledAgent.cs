@@ -44,56 +44,38 @@ namespace ScheduledTaskAgent1
         /// </remarks>
         protected override async void OnInvoke(ScheduledTask task)
         {
+            Settings.DebugLog("Schedule started, Enabled: " + Settings.Enabled);
 
-            // string toastMessage = "";
-
-            // If your application uses both PeriodicTask and ResourceIntensiveTask
-            // you can branch your application code here. Otherwise, you don't need to.
-            if (task is PeriodicTask)
+            if (Settings.Enabled)
             {
-                // Execute periodic task actions here.
-                // toastMessage = "Periodic task running.";
-            }
-            else
-            {
-                Settings.DebugLog("Schedule started, Enabled: " + Settings.Enabled);
-                // Execute resource-intensive task actions here.
-                // toastMessage = "Resource-intensive task running.";
-                if (Settings.Enabled)
+                if (await MyFlickr.Test())
                 {
-                    if (await MyFlickr.Test())
+                    Settings.TestsFailed = 0;
+                    Settings.DebugLog("Test succeeded, starting upload.");
+                    await MyFlickr.Upload();
+                }
+                else
+                {
+                    if (Settings.TestsFailed++ > 5)
                     {
+                        Settings.Enabled = false;
                         Settings.TestsFailed = 0;
-                        Settings.DebugLog("Test succeeded, starting upload.");
-                        await MyFlickr.Upload();
+                        Settings.ErrorLog("Flickr login failed, please re-enable app to re-authenticate with Flickr.");
                     }
                     else
                     {
-                        if (Settings.TestsFailed++ > 5)
+                        string err = "Returned null";
+                        if (MyFlickr.testResult != null)
                         {
-                            Settings.Enabled = false;
-                            Settings.ErrorLog("Flickr login failed, please re-enable app to re-authenticate with Flickr.");
+                            if (!string.IsNullOrEmpty(MyFlickr.testResult.ErrorMessage))
+                                err = MyFlickr.testResult.ErrorMessage;
+                            else if (MyFlickr.testResult.Error != null)
+                                err = MyFlickr.testResult.Error.Message;
                         }
-                        else
-                            Settings.DebugLog("Not uploading, test failed.");
+                        Settings.DebugLog("Not uploading, test failed " + Settings.TestsFailed + " times. " + err);
                     }
                 }
             }
-
-
-            // Launch a toast to show that the agent is running.
-            // The toast will not be shown if the foreground application is running.
-            /*
-
-            ShellToast toast = new ShellToast();
-            toast.Title = "Background Agent Sample";
-            toast.Content = toastMessage;
-            toast.Show();
-            */
-            // If debugging is enabled, launch the agent again in one minute.
-//#if DEBUG_AGENT
-  //ScheduledActionService.LaunchForTest(task.Name, TimeSpan.FromSeconds(10));
-//#endif
             NotifyComplete();
         }
 

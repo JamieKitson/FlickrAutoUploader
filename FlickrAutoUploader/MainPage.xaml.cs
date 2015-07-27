@@ -19,6 +19,8 @@ using System.Threading;
 using System.Collections.ObjectModel;
 using System.Windows.Media;
 using System.Net.NetworkInformation;
+using Microsoft.Phone.Tasks;
+using System.Diagnostics;
 
 namespace FlickrAutoUploader
 {
@@ -38,6 +40,8 @@ namespace FlickrAutoUploader
             dpUploadFrom.Value = Settings.StartFrom;
             tbTags.Text = Settings.Tags;
             slLogLevel.Value = Settings.LogLevel;
+            if (Debugger.IsAttached)
+                DebugPanel.Visibility = Visibility.Visible;
         }
 
         private void PhoneApplicationPage_Loaded(object sender, RoutedEventArgs e)
@@ -87,7 +91,7 @@ namespace FlickrAutoUploader
             tgEnabled.Checked += tgEnabled_Checked;
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void Auth_Click(object sender, RoutedEventArgs e)
         {
             AuthAttempts = 0;
             StartAuthProcess();
@@ -171,7 +175,7 @@ namespace FlickrAutoUploader
             Settings.SelectedAlbums.Remove((string)((CheckBox)sender).Content);
         }
 
-        private async void Button_Click_1(object sender, RoutedEventArgs e)
+        private async void Upload_Click(object sender, RoutedEventArgs e)
         {
             await MyFlickr.Upload();
         }
@@ -253,21 +257,10 @@ namespace FlickrAutoUploader
             }
         }
 
-        private void Button_Click_2(object sender, RoutedEventArgs e)
+        private void Run_Click(object sender, RoutedEventArgs e)
         {
-            /*
-            ShellToast toast = new ShellToast();
-            toast.Title = "Flickr Auto Uploader";
-            toast.Content = "one";
-            toast.Show();
-
-            Settings.Log("two");
-
-            MessageBox.Show("Three");
-            */
-            //#if DEBUG_AGENT
-            ScheduledActionService.LaunchForTest(RIT_NAME, TimeSpan.FromMilliseconds(2000));
-            //#endif
+            if (Debugger.IsAttached)
+                ScheduledActionService.LaunchForTest(RIT_NAME, TimeSpan.FromMilliseconds(2000));
         }
 
         private void PrivacyPicker_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -284,6 +277,15 @@ namespace FlickrAutoUploader
         {
             slLogLevel.Value = Math.Round(slLogLevel.Value);
             Settings.LogLevel = slLogLevel.Value;
+        }
+
+        private void EmailLog_Click(object sender, RoutedEventArgs e)
+        {
+            EmailComposeTask emailComposeTask = new EmailComposeTask();
+            emailComposeTask.Subject = "Flickr Auto Uploader Log";
+            emailComposeTask.Body = Settings.GetLog();
+            emailComposeTask.To = "jamie@kitten-x.com";
+            emailComposeTask.Show();
         }
 
     }

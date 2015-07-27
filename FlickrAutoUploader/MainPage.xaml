@@ -65,12 +65,13 @@
                 </StackPanel>
                 <StackPanel Name="DebugPanel" Visibility="Collapsed">
                     <StackPanel Orientation="Horizontal">
-                        <Button Content="Auth" HorizontalAlignment="Left" VerticalAlignment="Top" Click="Button_Click" />
-                        <Button Content="Upload" HorizontalAlignment="Left" VerticalAlignment="Top"  Click="Button_Click_1"/>
-                        <Button Content="Run" HorizontalAlignment="Left" VerticalAlignment="Top" Click="Button_Click_2"/>
+                        <Button Content="Auth" HorizontalAlignment="Left" VerticalAlignment="Top" Click="Auth_Click" />
+                        <Button Content="Upload" HorizontalAlignment="Left" VerticalAlignment="Top"  Click="Upload_Click"/>
+                        <Button Content="Run" HorizontalAlignment="Left" VerticalAlignment="Top" Click="Run_Click"/>
                     </StackPanel>
                     <TextBox HorizontalAlignment="Left" Height="72" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="456" x:Name="TextBox1"/>
                 </StackPanel>
+                <Button Content="Email Log" Name="EmailLog" Click="EmailLog_Click"/>
             </StackPanel>
         </ScrollViewer>
         <phone:WebBrowser Grid.Row="1" x:Name="WebBrowser1" Navigating="WebBrowser1_Navigating" Visibility="Collapsed" IsScriptEnabled="True"/>

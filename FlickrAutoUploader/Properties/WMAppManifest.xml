@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Deployment xmlns="http://schemas.microsoft.com/windowsphone/2014/deployment" AppPlatformVersion="8.1">
   <DefaultLanguage xmlns="" code="en-US" />
-  <App xmlns="" ProductID="{a8d961f4-04a8-4b46-8a60-80a17ad23afa}" Title="Flickr Auto Uploader" RuntimeType="Silverlight" Version="1.1.0.0" Genre="apps.normal" Author="Jamie Kitson" Description="Auto uploads photos to Flickr." Publisher="Jamie Kitson" PublisherID="{1e12b22f-b382-41f9-9b03-e4c23d927dad}">
+  <App xmlns="" ProductID="{a8d961f4-04a8-4b46-8a60-80a17ad23afa}" Title="Flickr Auto Uploader" RuntimeType="Silverlight" Version="1.2.0.0" Genre="apps.normal" Author="Jamie Kitson" Description="Auto uploads photos to Flickr." Publisher="Jamie Kitson" PublisherID="{1e12b22f-b382-41f9-9b03-e4c23d927dad}">
     <IconPath IsRelative="true" IsResource="false">Assets\ApplicationIcon.png</IconPath>
     <Capabilities>
       <Capability Name="ID_CAP_NETWORKING" />
