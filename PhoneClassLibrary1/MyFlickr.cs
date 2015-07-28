@@ -140,7 +140,8 @@ namespace PhoneClassLibrary1
             Flickr f = MyFlickr.getFlickr();
             flickrReturned = false;
             AlbumListResult = null;
-            f.PhotosetsGetListAsync(0, 10, (ret) => {
+            f.PhotosetsGetListAsync((ret) =>
+            {
                 flickrReturned = true;
                 AlbumListResult = ret;
             });
@@ -148,7 +149,7 @@ namespace PhoneClassLibrary1
             Dictionary<string, string> res = new Dictionary<string, string>();
             if (AlbumListResult.HasError)
                 return res;
-            AlbumListResult.Result.ToList().ForEach(album => res.Add(album.PhotosetId, album.Description));
+            AlbumListResult.Result.ToList().ForEach(album => res.Add(album.PhotosetId, album.Title));
             return res;
         }
 

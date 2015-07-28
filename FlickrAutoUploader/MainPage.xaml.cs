@@ -77,16 +77,16 @@ namespace FlickrAutoUploader
         private void SetToggleCheck()
         {
             if (Settings.Enabled && (ScheduledActionService.Find(RIT_NAME) != null))
-            {
                 tgEnabled.IsChecked = true;
-                if (NetworkInterface.GetIsNetworkAvailable())
-                {
-                    MyFlickr.getFlickr().TestLoginAsync((ret) =>
-                        {
-                            if (ret.HasError)
-                                tgEnabled.IsChecked = false;
-                        });
-                }
+            if (NetworkInterface.GetIsNetworkAvailable() && Settings.TokensSet())
+            {
+                MyFlickr.getFlickr().TestLoginAsync((ret) =>
+                    {
+                        if (ret.HasError)
+                            tgEnabled.IsChecked = false;
+                        else
+                            LoadDestAlbums();
+                    });
             }
             tgEnabled.Checked += tgEnabled_Checked;
         }
@@ -133,6 +133,7 @@ namespace FlickrAutoUploader
                             Settings.OAuthAccessTokenSecret = tok.Result.TokenSecret;
                             TextBox1.Text = tok.Result.UserId;
                             tgEnabled.IsChecked = true;
+                            LoadDestAlbums();
                         }
                     });
                 }
@@ -294,27 +295,41 @@ namespace FlickrAutoUploader
             WebBrowser1.NavigateToString("<pre>" + Settings.GetLog() + "</pre>");
         }
 
-        private void DestAlbum_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private /*async*/ void LoadDestAlbums_Tap(object sender, System.Windows.Input.GestureEventArgs e)
         {
-            // MessageBox.Show("hi");
+            MessageBox.Show("LoadDestAlbums Tap");
+            /*
+            Dictionary<string, string> albums = await MyFlickr.GetAlbums();
+            albums.ToList().ForEach(album => {
+                ListPickerItem lpi = new ListPickerItem();
+                lpi.Content = album.Value;
+                DestAlbum.Items.Add(lpi);
+            });*/
         }
 
         private void DestAlbum_Tap(object sender, System.Windows.Input.GestureEventArgs e)
         {
-            if (DestAlbum.Items.Count() < 3)
-                LoadAlbums();
+            MessageBox.Show("DestAlbm Tap");
         }
 
-        private async void LoadAlbums()
+        private void LoadDestAlbums()
         {
-            Dictionary<string, string> albums = await MyFlickr.GetAlbums();
-            DestAlbum.DataContext = albums;
+            if (LongListSelector1.ItemsSource != null)
+                return;
+            lpiLoadingAlbums.Content = "Loading Albums...";
+            Flickr f = MyFlickr.getFlickr();
+            f.PhotosetsGetListAsync((ret) => 
+            {
+                LongListSelector1.Items.Clear();
+                LongListSelector1.ItemsSource = ret.Result.OrderBy(ps => ps.Title).ToList(); // .GroupBy(ps => ps.Title.Substring(0, 1)).ToList();
+                LongListSelector1.IsEnabled = true;
+                LongListSelector1.SelectionChanged += LongListSelector1_SelectionChanged;
+            });
         }
 
-        private void LoadDestAlbums_Tap(object sender, System.Windows.Input.GestureEventArgs e)
+        private void LongListSelector1_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            LoadAlbums();
+            MessageBox.Show(((Photoset)LongListSelector1.SelectedItem).PhotosetId);
         }
-
-    }
+   }
 }

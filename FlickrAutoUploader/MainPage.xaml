@@ -54,8 +54,18 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Text="Album:" VerticalAlignment="Center"/>
-                    <toolkit:ListPicker Grid.Column="1" Name="DestAlbum" SelectionChanged="DestAlbum_SelectionChanged" ExpansionMode="FullScreenOnly">
-                        <toolkit:ListPickerItem Content="Load Albums" HorizontalAlignment="Center" Name="LoadDestAlbums" Tap="LoadDestAlbums_Tap" />
+                    <toolkit:ListPicker Grid.Column="1" Name="LongListSelector1" IsEnabled="False" ExpansionMode="FullScreenOnly"> 
+                        <toolkit:ListPickerItem Content="Enable App to Load Albums" HorizontalAlignment="Center" Name="lpiLoadingAlbums" />
+                        <toolkit:ListPicker.ItemTemplate>
+                            <DataTemplate>
+                                <toolkit:ListPickerItem Content="{Binding Title}" />
+                            </DataTemplate>
+                        </toolkit:ListPicker.ItemTemplate>
+                        <toolkit:ListPicker.FullModeItemTemplate>
+                            <DataTemplate>
+                                <toolkit:ListPickerItem Content="{Binding Title}" />
+                            </DataTemplate>
+                        </toolkit:ListPicker.FullModeItemTemplate>
                     </toolkit:ListPicker>
                 </Grid>
                 <Grid>
