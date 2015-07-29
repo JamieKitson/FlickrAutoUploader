@@ -49,6 +49,9 @@ namespace FlickrAutoUploader
         private void PhoneApplicationPage_Loaded(object sender, RoutedEventArgs e)
         {
             SetToggleCheck();
+            Photoset fa = Settings.FlickrAlbum;
+            if (fa != null)
+                ShowFlickrAlbums.Content = fa.Title;
         }
 
         private void PopulatePrivacy()
@@ -298,35 +301,21 @@ namespace FlickrAutoUploader
             WebBrowser1.NavigateToString("<pre>" + Settings.GetLog() + "</pre>");
         }
 
-        private /*async*/ void LoadDestAlbums_Tap(object sender, System.Windows.Input.GestureEventArgs e)
-        {
-            MessageBox.Show("LoadDestAlbums Tap");
-            /*
-            Dictionary<string, string> albums = await MyFlickr.GetAlbums();
-            albums.ToList().ForEach(album => {
-                ListPickerItem lpi = new ListPickerItem();
-                lpi.Content = album.Value;
-                DestAlbum.Items.Add(lpi);
-            });*/
-        }
-
-        private void DestAlbum_Tap(object sender, System.Windows.Input.GestureEventArgs e)
-        {
-            MessageBox.Show("DestAlbm Tap");
-        }
-
         private void LoadDestAlbums()
         {
             if (LongListSelector1.ItemsSource != null)
                 return;
-            ShowFlickrAlbums.Content = "Loading Albums...";
+            if (Settings.FlickrAlbum == null)
+                ShowFlickrAlbums.Content = "Loading Albums...";
             Flickr f = MyFlickr.getFlickr();
             f.PhotosetsGetListAsync((ret) => 
             {
                 LongListSelector1.SelectionChanged -= LongListSelector1_SelectionChanged;
+                ret.Result.Insert(0, new Photoset() { PhotosetId = string.Empty, Title = "-- None --" });
                 LongListSelector1.ItemsSource = AlphaKeyGroup<Photoset>.CreateGroups(ret.Result, Thread.CurrentThread.CurrentUICulture, (Photoset p) => { return p.Title; }, true);
                 ShowFlickrAlbums.IsEnabled = true;
-                ShowFlickrAlbums.Content = "Choose Album";
+                if (Settings.FlickrAlbum == null)
+                    ShowFlickrAlbums.Content = "Choose Album";
                 LongListSelector1.SelectionChanged += LongListSelector1_SelectionChanged;
             });
         }
@@ -335,11 +324,9 @@ namespace FlickrAutoUploader
         {
             LongListSelector1.Visibility = Visibility.Collapsed;
             Photoset sel = (Photoset)LongListSelector1.SelectedItem;
-            MessageBox.Show(sel.PhotosetId);
             ShowFlickrAlbums.Content = sel.Title;
-            Settings.FlickrAlbum = sel;
+            Settings.FlickrAlbum = string.IsNullOrEmpty(sel.PhotosetId) ? null : sel;
         }
-
 
         public class AlphaKeyGroup<T> : List<T>
         {
