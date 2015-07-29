@@ -94,13 +94,13 @@ namespace PhoneClassLibrary1
                         continue;
                     }
 
-                    flickrReturned = false;
                     bool isPublic = Settings.Privacy == Settings.ePrivacy.Public;
                     bool isFriends = (Settings.Privacy & Settings.ePrivacy.Friends) > 0;
                     bool isFamily = (Settings.Privacy & Settings.ePrivacy.Family) > 0;
                     string album = p.Album.Name;
                     string tags = string.Join(", ", new string[] { filenameTag, hashTag, Settings.Tags, "\"" + album + "\"" });
                     ContentType ct = album == "Screenshots" ? ContentType.Screenshot : ContentType.Photo;
+                    flickrReturned = false;
                     f.UploadPictureAsync(p.GetImage(), p.Name, p.Name, string.Empty, tags, isPublic, isFamily, isFriends, ct, SafetyLevel.Safe, HiddenFromSearch.Visible, (ret) =>
                         {
                             uploadResult = ret;
@@ -109,10 +109,10 @@ namespace PhoneClassLibrary1
                     await waitForFlickrResult();
                     if (uploadResult.HasError)
                         throw new Exception(uploadResult.ErrorMessage);
-                    flickrReturned = false;
                     if (FlickrAlbum != null)
                     {
                         Settings.DebugLog("Uploading to Flickr album " + FlickrAlbum.Title);
+                        flickrReturned = false;
                         f.PhotosetsAddPhotoAsync(FlickrAlbum.PhotosetId, uploadResult.Result, ret =>
                             {
                                 flickrReturned = true;
