@@ -59,7 +59,7 @@ namespace PhoneClassLibrary1
             try
             {
                 Flickr f = MyFlickr.getFlickr();
-                IList<string> checkedAlbums = Settings.SelectedAlbums;
+                IList<string> checkedAlbums = Settings.SelectedPhoneAlbums;
                 // Apparently even without the where clause GetAvailableMediaSources will only ever return a single media source on Windows Phone
                 var sources = MediaSource.GetAvailableMediaSources().Where(s => s.MediaSourceType == MediaSourceType.LocalDevice);
                 if (sources.Count() != 1)

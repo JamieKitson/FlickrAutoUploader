@@ -36,7 +36,7 @@ namespace FlickrAutoUploader
         public MainPage()
         {
             InitializeComponent();
-            LoadFolders();
+            LoadPhoneAlbums();
             PopulatePrivacy();
             FixPrivacyItmemsBackground();
             dpUploadFrom.Value = Settings.StartFrom;
@@ -90,7 +90,7 @@ namespace FlickrAutoUploader
                         if (ret.HasError)
                             tgEnabled.IsChecked = false;
                         else
-                            LoadDestAlbums();
+                            LoadFlickrAlbums();
                     });
             }
             tgEnabled.Checked += tgEnabled_Checked;
@@ -138,7 +138,7 @@ namespace FlickrAutoUploader
                             Settings.OAuthAccessTokenSecret = tok.Result.TokenSecret;
                             TextBox1.Text = tok.Result.UserId;
                             tgEnabled.IsChecked = true;
-                            LoadDestAlbums();
+                            LoadFlickrAlbums();
                         }
                     });
                 }
@@ -147,10 +147,10 @@ namespace FlickrAutoUploader
             }
         }
 
-        private void LoadFolders()
+        private void LoadPhoneAlbums()
         {
-            Folders.Children.Clear();
-            IList<string> checkedAlbums = Settings.SelectedAlbums;
+            PhoneAlbumList.Children.Clear();
+            IList<string> checkedPhoneAlbums = Settings.SelectedPhoneAlbums;
             foreach (MediaSource source in MediaSource.GetAvailableMediaSources())
             {
                 if (source.MediaSourceType == MediaSourceType.LocalDevice)
@@ -161,24 +161,24 @@ namespace FlickrAutoUploader
                     {
                         CheckBox cb = new CheckBox();
                         cb.Content = album.Name;
-                        cb.IsChecked = checkedAlbums.Contains(album.Name);
-                        cb.Checked += Album_Checked;
-                        cb.Unchecked += Album_Unchecked;
+                        cb.IsChecked = checkedPhoneAlbums.Contains(album.Name);
+                        cb.Checked += PhoneAlbum_Checked;
+                        cb.Unchecked += PhoneAlbum_Unchecked;
                         cb.Margin = new Thickness(0, 0, 0, -10);
-                        Folders.Children.Add(cb);
+                        PhoneAlbumList.Children.Add(cb);
                     }
                 }
             }
         }
 
-        private void Album_Checked(object sender, RoutedEventArgs e)
+        private void PhoneAlbum_Checked(object sender, RoutedEventArgs e)
         {
-            Settings.SelectedAlbums.Add((string)((CheckBox)sender).Content);
+            Settings.SelectedPhoneAlbums.Add((string)((CheckBox)sender).Content);
         }
 
-        private void Album_Unchecked(object sender, RoutedEventArgs e)
+        private void PhoneAlbum_Unchecked(object sender, RoutedEventArgs e)
         {
-            Settings.SelectedAlbums.Remove((string)((CheckBox)sender).Content);
+            Settings.SelectedPhoneAlbums.Remove((string)((CheckBox)sender).Content);
         }
 
         private async void Upload_Click(object sender, RoutedEventArgs e)
@@ -256,11 +256,11 @@ namespace FlickrAutoUploader
         protected override void OnBackKeyPress(System.ComponentModel.CancelEventArgs e)
         {
             base.OnBackKeyPress(e);
-            if ((WebBrowser1.Visibility == Visibility.Visible) || (LongListSelector1.Visibility == Visibility.Visible))
+            if ((WebBrowser1.Visibility == Visibility.Visible) || (FlickrAlbumList.Visibility == Visibility.Visible))
             {
                 e.Cancel = true;
                 WebBrowser1.Visibility = Visibility.Collapsed;
-                LongListSelector1.Visibility = Visibility.Collapsed;
+                FlickrAlbumList.Visibility = Visibility.Collapsed;
             }
         }
 
@@ -301,29 +301,29 @@ namespace FlickrAutoUploader
             WebBrowser1.NavigateToString("<pre>" + Settings.GetLog() + "</pre>");
         }
 
-        private void LoadDestAlbums()
+        private void LoadFlickrAlbums()
         {
-            if (LongListSelector1.ItemsSource != null)
+            if (FlickrAlbumList.ItemsSource != null)
                 return;
             if (Settings.FlickrAlbum == null)
                 ShowFlickrAlbums.Content = "Loading Albums...";
             Flickr f = MyFlickr.getFlickr();
             f.PhotosetsGetListAsync((ret) => 
             {
-                LongListSelector1.SelectionChanged -= LongListSelector1_SelectionChanged;
+                FlickrAlbumList.SelectionChanged -= FlickrAlbumList_SelectionChanged;
                 ret.Result.Insert(0, new Photoset() { PhotosetId = string.Empty, Title = "-- None --" });
-                LongListSelector1.ItemsSource = AlphaKeyGroup<Photoset>.CreateGroups(ret.Result, Thread.CurrentThread.CurrentUICulture, (Photoset p) => { return p.Title; }, true);
+                FlickrAlbumList.ItemsSource = AlphaKeyGroup<Photoset>.CreateGroups(ret.Result, Thread.CurrentThread.CurrentUICulture, (Photoset p) => { return p.Title; }, true);
                 ShowFlickrAlbums.IsEnabled = true;
                 if (Settings.FlickrAlbum == null)
                     ShowFlickrAlbums.Content = "Choose Album";
-                LongListSelector1.SelectionChanged += LongListSelector1_SelectionChanged;
+                FlickrAlbumList.SelectionChanged += FlickrAlbumList_SelectionChanged;
             });
         }
 
-        private void LongListSelector1_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void FlickrAlbumList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            LongListSelector1.Visibility = Visibility.Collapsed;
-            Photoset sel = (Photoset)LongListSelector1.SelectedItem;
+            FlickrAlbumList.Visibility = Visibility.Collapsed;
+            Photoset sel = (Photoset)FlickrAlbumList.SelectedItem;
             ShowFlickrAlbums.Content = sel.Title;
             Settings.FlickrAlbum = string.IsNullOrEmpty(sel.PhotosetId) ? null : sel;
         }
@@ -415,7 +415,7 @@ namespace FlickrAutoUploader
 
         private void ShowFlickrAlbums_Click(object sender, RoutedEventArgs e)
         {
-            LongListSelector1.Visibility = Visibility.Visible;
+            FlickrAlbumList.Visibility = Visibility.Visible;
         }
 
    }

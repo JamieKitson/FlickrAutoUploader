@@ -95,7 +95,7 @@ namespace PhoneClassLibrary1
         }
 
         private const string ALBUMS = "albums";
-        public static IList<string> SelectedAlbums
+        public static IList<string> SelectedPhoneAlbums
         {
             get { return GetSettingList(ALBUMS, "Camera Roll"); }
             set { SetSetting(ALBUMS, value); }
