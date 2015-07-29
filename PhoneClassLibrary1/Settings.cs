@@ -1,4 +1,5 @@
-﻿using Microsoft.Phone.Shell;
+﻿using FlickrNet;
+using Microsoft.Phone.Shell;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -251,6 +252,13 @@ namespace PhoneClassLibrary1
             {
                 mutexFile.ReleaseMutex();
             }
+        }
+
+        private const string FLICKR_ALBUM = "flickralbum";
+        public static Photoset FlickrAlbum
+        {
+            get { return GetSetting<Photoset>(FLICKR_ALBUM, null); }
+            set { SetSetting(FLICKR_ALBUM, value); }
         }
 
     }

@@ -21,6 +21,8 @@ using System.Windows.Media;
 using System.Net.NetworkInformation;
 using Microsoft.Phone.Tasks;
 using System.Diagnostics;
+using Microsoft.Phone.Globalization;
+using System.Globalization;
 
 namespace FlickrAutoUploader
 {
@@ -251,10 +253,11 @@ namespace FlickrAutoUploader
         protected override void OnBackKeyPress(System.ComponentModel.CancelEventArgs e)
         {
             base.OnBackKeyPress(e);
-            if (WebBrowser1.Visibility == Visibility.Visible)
+            if ((WebBrowser1.Visibility == Visibility.Visible) || (LongListSelector1.Visibility == Visibility.Visible))
             {
                 e.Cancel = true;
                 WebBrowser1.Visibility = Visibility.Collapsed;
+                LongListSelector1.Visibility = Visibility.Collapsed;
             }
         }
 
@@ -316,20 +319,117 @@ namespace FlickrAutoUploader
         {
             if (LongListSelector1.ItemsSource != null)
                 return;
-            lpiLoadingAlbums.Content = "Loading Albums...";
+            ShowFlickrAlbums.Content = "Loading Albums...";
             Flickr f = MyFlickr.getFlickr();
             f.PhotosetsGetListAsync((ret) => 
             {
-                LongListSelector1.Items.Clear();
-                LongListSelector1.ItemsSource = ret.Result.OrderBy(ps => ps.Title).ToList(); // .GroupBy(ps => ps.Title.Substring(0, 1)).ToList();
-                LongListSelector1.IsEnabled = true;
+                LongListSelector1.SelectionChanged -= LongListSelector1_SelectionChanged;
+                LongListSelector1.ItemsSource = AlphaKeyGroup<Photoset>.CreateGroups(ret.Result, Thread.CurrentThread.CurrentUICulture, (Photoset p) => { return p.Title; }, true);
+                ShowFlickrAlbums.IsEnabled = true;
+                ShowFlickrAlbums.Content = "Choose Album";
                 LongListSelector1.SelectionChanged += LongListSelector1_SelectionChanged;
             });
         }
 
         private void LongListSelector1_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            MessageBox.Show(((Photoset)LongListSelector1.SelectedItem).PhotosetId);
+            LongListSelector1.Visibility = Visibility.Collapsed;
+            Photoset sel = (Photoset)LongListSelector1.SelectedItem;
+            MessageBox.Show(sel.PhotosetId);
+            ShowFlickrAlbums.Content = sel.Title;
+            Settings.FlickrAlbum = sel;
         }
+
+
+        public class AlphaKeyGroup<T> : List<T>
+        {
+            /// <summary>
+            /// The delegate that is used to get the key information.
+            /// </summary>
+            /// <param name="item">An object of type T</param>
+            /// <returns>The key value to use for this object</returns>
+            public delegate string GetKeyDelegate(T item);
+
+            /// <summary>
+            /// The Key of this group.
+            /// </summary>
+            public string Key { get; private set; }
+
+            /// <summary>
+            /// Public constructor.
+            /// </summary>
+            /// <param name="key">The key for this group.</param>
+            public AlphaKeyGroup(string key)
+            {
+                Key = key;
+            }
+
+            /// <summary>
+            /// Create a list of AlphaGroup<T> with keys set by a SortedLocaleGrouping.
+            /// </summary>
+            /// <param name="slg">The </param>
+            /// <returns>Theitems source for a LongListSelector</returns>
+            private static List<AlphaKeyGroup<T>> CreateGroups(SortedLocaleGrouping slg)
+            {
+                List<AlphaKeyGroup<T>> list = new List<AlphaKeyGroup<T>>();
+
+                foreach (string key in slg.GroupDisplayNames)
+                {
+                    list.Add(new AlphaKeyGroup<T>(key));
+                }
+
+                return list;
+            }
+
+            /// <summary>
+            /// Create a list of AlphaGroup<T> with keys set by a SortedLocaleGrouping.
+            /// </summary>
+            /// <param name="items">The items to place in the groups.</param>
+            /// <param name="ci">The CultureInfo to group and sort by.</param>
+            /// <param name="getKey">A delegate to get the key from an item.</param>
+            /// <param name="sort">Will sort the data if true.</param>
+            /// <returns>An items source for a LongListSelector</returns>
+            public static List<AlphaKeyGroup<T>> CreateGroups(IEnumerable<T> items, CultureInfo ci, GetKeyDelegate getKey, bool sort)
+            {
+                SortedLocaleGrouping slg = new SortedLocaleGrouping(ci);
+                List<AlphaKeyGroup<T>> list = CreateGroups(slg);
+
+                foreach (T item in items)
+                {
+                    int index = 0;
+                    if (slg.SupportsPhonetics)
+                    {
+                        //check if your database has yomi string for item
+                        //if it does not, then do you want to generate Yomi or ask the user for this item.
+                        //index = slg.GetGroupIndex(getKey(Yomiof(item)));
+                    }
+                    else
+                    {
+                        index = slg.GetGroupIndex(getKey(item));
+                    }
+                    if (index >= 0 && index < list.Count)
+                    {
+                        list[index].Add(item);
+                    }
+                }
+
+                if (sort)
+                {
+                    foreach (AlphaKeyGroup<T> group in list)
+                    {
+                        group.Sort((c0, c1) => { return ci.CompareInfo.Compare(getKey(c0), getKey(c1)); });
+                    }
+                }
+
+                return list;
+            }
+
+        }
+
+        private void ShowFlickrAlbums_Click(object sender, RoutedEventArgs e)
+        {
+            LongListSelector1.Visibility = Visibility.Visible;
+        }
+
    }
 }

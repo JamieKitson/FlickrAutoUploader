@@ -55,6 +55,7 @@ namespace PhoneClassLibrary1
         public static async Task Upload()
         {
             Settings.ClearLog();
+            Photoset FlickrAlbum = Settings.FlickrAlbum;
             try
             {
                 Flickr f = MyFlickr.getFlickr();
@@ -105,6 +106,15 @@ namespace PhoneClassLibrary1
                             uploadResult = ret;
                             flickrReturned = true;
                         });
+                    await waitForFlickrResult();
+                    if (uploadResult.HasError)
+                        throw new Exception(uploadResult.ErrorMessage);
+                    flickrReturned = false;
+                    if (FlickrAlbum != null)
+                        f.PhotosetsAddPhotoAsync(Settings.FlickrAlbum.PhotosetId, uploadResult.Result, ret =>
+                            {
+                                flickrReturned = true;
+                            });
                     await waitForFlickrResult();
                     Settings.StartFrom = p.Date;
                     Settings.LogInfo("Uploaded: " + p.Name);
