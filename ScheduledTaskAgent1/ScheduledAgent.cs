@@ -65,12 +65,9 @@ namespace ScheduledTaskAgent1
                     else
                     {
                         string err = "Returned null";
-                        if (MyFlickr.testResult != null)
+                        if (MyFlickr.lastError != null)
                         {
-                            if (!string.IsNullOrEmpty(MyFlickr.testResult.ErrorMessage))
-                                err = MyFlickr.testResult.ErrorMessage;
-                            else if (MyFlickr.testResult.Error != null)
-                                err = MyFlickr.testResult.Error.Message;
+                            err = MyFlickr.lastError.Message;
                         }
                         Settings.DebugLog("Not uploading, test failed " + Settings.TestsFailed + " times. " + err);
                     }

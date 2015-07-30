@@ -79,21 +79,18 @@ namespace FlickrAutoUploader
             catch { } // Don't really care if it fails
         }
 
-        private void SetToggleCheck()
+        private async void SetToggleCheck()
         {
             if (Settings.Enabled && (ScheduledActionService.Find(RIT_NAME) != null))
                 tgEnabled.IsChecked = true;
+            tgEnabled.Checked += tgEnabled_Checked;
             if (NetworkInterface.GetIsNetworkAvailable() && Settings.TokensSet())
             {
-                MyFlickr.getFlickr().TestLoginAsync((ret) =>
-                    {
-                        if (ret.HasError)
-                            tgEnabled.IsChecked = false;
-                        else
-                            LoadFlickrAlbums();
-                    });
+                if (await MyFlickr.Test())
+                    LoadFlickrAlbums();
+                else
+                    tgEnabled.IsChecked = false;
             }
-            tgEnabled.Checked += tgEnabled_Checked;
         }
 
         private void Auth_Click(object sender, RoutedEventArgs e)
@@ -102,7 +99,7 @@ namespace FlickrAutoUploader
             StartAuthProcess();
         }
 
-        private void WebBrowser1_Navigating(object sender, NavigatingEventArgs e)
+        private async void WebBrowser1_Navigating(object sender, NavigatingEventArgs e)
         {
             TextBox1.Text = e.Uri.AbsoluteUri;
             const string OAUTH_VERIFIER = "oauth_verifier";
@@ -122,25 +119,27 @@ namespace FlickrAutoUploader
                     if (p.Count() == 2)
                         ps.Add(p[0], p[1]);
                 }
-                Flickr f = MyFlickr.getFlickr();
                 if (ps.ContainsKey(OAUTH_VERIFIER))
                 {
-                    f.OAuthGetAccessTokenAsync(requestToken, ps[OAUTH_VERIFIER], (tok) =>
+                    Flickr f = MyFlickr.getFlickr();
+                    try
                     {
-                        if (tok.HasError)
+                        OAuthAccessToken tok = await f.OAuthAccessTokenAsync(requestToken.Token, requestToken.TokenSecret, ps[OAUTH_VERIFIER]);
+                        if (tok != null)
                         {
-                            tgEnabled.IsChecked = false;
-                            MessageBox.Show(tok.Error.Message);
-                        }
-                        else
-                        {
-                            Settings.OAuthAccessToken = tok.Result.Token;
-                            Settings.OAuthAccessTokenSecret = tok.Result.TokenSecret;
-                            TextBox1.Text = tok.Result.UserId;
+                            Settings.OAuthAccessToken = tok.Token;
+                            Settings.OAuthAccessTokenSecret = tok.TokenSecret;
+                            TextBox1.Text = tok.UserId;
+                            AddScheduledTask();
                             tgEnabled.IsChecked = true;
                             LoadFlickrAlbums();
                         }
-                    });
+                    }
+                    catch (Exception ex)
+                    {
+                        tgEnabled.IsChecked = false;
+                        MessageBox.Show("Error: " + ex.Message);
+                    }
                 }
                 else
                     MessageBox.Show("Authorisation failed.");
@@ -190,15 +189,18 @@ namespace FlickrAutoUploader
         {
             RemoveSchedule();
             ResourceIntensiveTask resourceIntensiveTask = new ResourceIntensiveTask(RIT_NAME);
-            resourceIntensiveTask.Description = "This demonstrates a resource-intensive task.";
+            resourceIntensiveTask.Description = "Flickr Auto Uploader";
             ScheduledActionService.Add(resourceIntensiveTask);
             Settings.Enabled = true;
         }
 
         private async void tgEnabled_Checked(object sender, RoutedEventArgs e)
         {
-            //MessageBox.Show("checked");
-            if (!NetworkInterface.GetIsNetworkAvailable())
+            if (ScheduledActionService.Find(RIT_NAME) != null)
+            {
+                Settings.Enabled = true;
+            }
+            else if (!NetworkInterface.GetIsNetworkAvailable())
             {
                 MessageBox.Show("Please re-try enabling when you have an internet connection available.");
                 tgEnabled.IsChecked = false;
@@ -216,21 +218,23 @@ namespace FlickrAutoUploader
             }
         }
 
-        private void StartAuthProcess()
+        private async void StartAuthProcess()
         {
-            Flickr f = MyFlickr.getFlickr();
-            f.OAuthGetRequestTokenAsync(CALL_BACK, (tok) =>
+            try
             {
-                if (tok.HasError)
-                    TextBox1.Text = tok.Error.Message;
-                else
+                Flickr f = MyFlickr.getFlickr();
+                requestToken = await f.OAuthRequestTokenAsync(CALL_BACK);
+                if (requestToken != null)
                 {
-                    requestToken = tok.Result;
                     string url = f.OAuthCalculateAuthorizationUrl(requestToken.Token, AuthLevel.Write);
                     WebBrowser1.Visibility = Visibility.Visible;
                     WebBrowser1.Navigate(new Uri(url));
                 }
-            });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error: " + ex.Message);
+            }
         }
 
         private void RemoveSchedule()
@@ -301,23 +305,31 @@ namespace FlickrAutoUploader
             WebBrowser1.NavigateToString("<pre>" + Settings.GetLog() + "</pre>");
         }
 
-        private void LoadFlickrAlbums()
+        private async void LoadFlickrAlbums()
         {
             if (FlickrAlbumList.ItemsSource != null)
                 return;
             if (Settings.FlickrAlbum == null)
                 ShowFlickrAlbums.Content = "Loading Albums...";
             Flickr f = MyFlickr.getFlickr();
-            f.PhotosetsGetListAsync((ret) => 
+            try
             {
-                FlickrAlbumList.SelectionChanged -= FlickrAlbumList_SelectionChanged;
-                ret.Result.Add(new Photoset() { PhotosetId = string.Empty, Title = "-- None --" });
-                FlickrAlbumList.ItemsSource = AlphaKeyGroup<Photoset>.CreateGroups(ret.Result, Thread.CurrentThread.CurrentUICulture, (Photoset p) => { return p.Title; }, true);
-                ShowFlickrAlbums.IsEnabled = true;
-                if (Settings.FlickrAlbum == null)
-                    ShowFlickrAlbums.Content = "Choose Album";
-                FlickrAlbumList.SelectionChanged += FlickrAlbumList_SelectionChanged;
-            });
+                PhotosetCollection ret = await f.PhotosetsGetListAsync();
+                if (ret != null)
+                {
+                    FlickrAlbumList.SelectionChanged -= FlickrAlbumList_SelectionChanged;
+                    ret.Add(new Photoset() { PhotosetId = string.Empty, Title = "-- None --" });
+                    FlickrAlbumList.ItemsSource = AlphaKeyGroup<Photoset>.CreateGroups(ret, Thread.CurrentThread.CurrentUICulture, (Photoset p) => { return p.Title; }, true);
+                    ShowFlickrAlbums.IsEnabled = true;
+                    if (Settings.FlickrAlbum == null)
+                        ShowFlickrAlbums.Content = "Choose Album";
+                    FlickrAlbumList.SelectionChanged += FlickrAlbumList_SelectionChanged;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error: " + ex.Message);
+            }
         }
 
         private void FlickrAlbumList_SelectionChanged(object sender, SelectionChangedEventArgs e)

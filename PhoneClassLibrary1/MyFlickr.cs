@@ -30,25 +30,24 @@ namespace PhoneClassLibrary1
             return f;
         }
 
-        public static FlickrResult<FoundUser> testResult;
+        public static Exception lastError;
 
         public static async Task<bool> Test()
         {
             if (!Settings.TokensSet())
                 return false;
-            Flickr f = getFlickr();
-            flickrReturned = false;
-            testResult = null;
-            f.TestLoginAsync((ret) => 
-                { 
-                    testResult = ret;
-                    flickrReturned = true;
-                });
-            await waitForFlickrResult();
-            return (testResult != null) && (!testResult.HasError);
+            try
+            {
+                Flickr f = getFlickr();
+                FoundUser testResult = await f.TestLoginAsync();
+                return (testResult != null); // && (!testResult.HasError);
+            }
+            catch (Exception ex)
+            {
+                lastError = ex;
+                return false;
+            }
         }
-
-        private static bool flickrReturned;
 
         public static async Task Upload()
         {
@@ -79,19 +78,11 @@ namespace PhoneClassLibrary1
                     string hashTag = "file:sha1sig=" + BitConverter.ToString(hash.Hash).Replace("-", string.Empty);
                     string filenameTag = "file:name=" + p.Name;
                     PhotoSearchOptions so = new PhotoSearchOptions("me", hashTag);
-                    flickrReturned = false;
-                    FlickrResult<PhotoCollection> searchResult = null;
-                    f.PhotosSearchAsync(so, (ret) =>
-                        {
-                            searchResult = ret;
-                            flickrReturned = true;
-                        });
-                    await waitForFlickrResult();
-                    checkResult(searchResult);
+                    PhotoCollection searchResult = await f.PhotosSearchAsync(so);
                     string PhotoID;
-                    if (searchResult.Result.Count > 0)
+                    if (searchResult.Count > 0)
                     {
-                        PhotoID = searchResult.Result[0].PhotoId;
+                        PhotoID = searchResult[0].PhotoId;
                         Settings.DebugLog("Already uploaded, skipping.");
                     }
                     else
@@ -103,18 +94,7 @@ namespace PhoneClassLibrary1
                         string album = p.Album.Name;
                         string tags = string.Join(", ", new string[] { filenameTag, hashTag, Settings.Tags, "\"" + album + "\"" });
                         ContentType ct = album == "Screenshots" ? ContentType.Screenshot : ContentType.Photo;
-                        flickrReturned = false;
-                        FlickrResult<string> uploadResult = null;
-                        f.UploadPictureAsync(p.GetImage(), p.Name, p.Name, string.Empty, tags, isPublic, isFamily, isFriends, ct, SafetyLevel.Safe, HiddenFromSearch.Visible, (ret) =>
-                            {
-                                uploadResult = ret;
-                                flickrReturned = true;
-                            });
-                        await waitForFlickrResult();
-                        checkResult(uploadResult);
-                        if (uploadResult.HasError)
-                            throw new Exception(uploadResult.ErrorMessage);
-                        PhotoID = uploadResult.Result;
+                        PhotoID = await f.UploadPictureAsync(p.GetImage(), p.Name, p.Name, string.Empty, tags, isPublic, isFamily, isFriends, ct, SafetyLevel.Safe, HiddenFromSearch.Visible);
                         Settings.LogInfo("Uploaded: " + p.Name);
                     }
                     if (FlickrAlbum == null)
@@ -124,15 +104,15 @@ namespace PhoneClassLibrary1
                     else
                     {
                         Settings.DebugLog("Adding to Flickr album " + FlickrAlbum.Title);
-                        flickrReturned = false;
-                        FlickrResult<NoResponse> AddToSetResult = null;
-                        f.PhotosetsAddPhotoAsync(FlickrAlbum.PhotosetId, PhotoID, ret =>
-                            {
-                                AddToSetResult = ret;
-                                flickrReturned = true;
-                            });
-                        await waitForFlickrResult();
-                        checkResult(AddToSetResult);
+                        try
+                        {
+                            await f.PhotosetsAddPhotoAsync(FlickrAlbum.PhotosetId, PhotoID);
+                        }
+                        catch (FlickrApiException ex)
+                        {
+                            if (ex.Code != 3) // Photo already in set
+                                throw;
+                        }
                     }
                     Settings.StartFrom = p.Date;
                 }
@@ -148,31 +128,6 @@ namespace PhoneClassLibrary1
                 }
                 else
                     Settings.DebugLog("Error uploading: " + ex.Message);
-            }
-        }
-
-        private static async Task waitForFlickrResult()
-        {
-            const int DELAY_MS = 100;
-            int i = 0;
-            while (!flickrReturned && (i++ < 60 * 1000 / DELAY_MS)) // time out after 1 minute
-                await Task.Delay(DELAY_MS);
-            if (!flickrReturned)
-                throw new Exception("Timedout");
-        }
-
-        private static void checkResult<T>(FlickrResult<T> res)
-        {
-            if (res == null)
-                throw new Exception("Flickr call returned null.");
-            if (res.HasError)
-            {
-                if ((res.ErrorCode == 3) && (res.ErrorMessage == "Photo already in set"))
-                    return;
-                if (!string.IsNullOrEmpty(res.ErrorMessage))
-                    throw new Exception(res.ErrorMessage);
-                else if (res.Error != null)
-                    throw new Exception(res.Error.Message);
             }
         }
 
