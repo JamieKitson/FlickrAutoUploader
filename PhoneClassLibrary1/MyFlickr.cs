@@ -136,10 +136,18 @@ namespace PhoneClassLibrary1
                     }
                     Settings.StartFrom = p.Date;
                 }
+                Settings.UploadsFailed = 0;
             }
             catch (Exception ex)
             {
-                Settings.DebugLog("Error uploading: " + ex.Message);
+                if (Settings.UploadsFailed++ > 5)
+                {
+                    Settings.UploadsFailed = 0;
+                    Settings.Enabled = false;
+                    Settings.ErrorLog("Error uploading: " + ex.Message);
+                }
+                else
+                    Settings.DebugLog("Error uploading: " + ex.Message);
             }
         }
 

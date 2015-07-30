@@ -261,5 +261,12 @@ namespace PhoneClassLibrary1
             set { SetSetting(FLICKR_ALBUM, value); }
         }
 
+        private const string UPLOADS_FAILED = "uploadsfailed";
+        public static int UploadsFailed
+        {
+            get { return GetSetting(UPLOADS_FAILED, 0); }
+            set { SetSetting(UPLOADS_FAILED, value); }
+        }
+
     }
 }
