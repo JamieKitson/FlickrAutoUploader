@@ -95,7 +95,7 @@
         <phone:LongListSelector Grid.Row="1" Name="FlickrAlbumList" IsGroupingEnabled="True" Visibility="Collapsed" Background="{StaticResource PhoneBackgroundBrush}" >
             <phone:LongListSelector.ItemTemplate>
                 <DataTemplate>
-                    <TextBlock Text="{Binding Title}" />
+                    <TextBlock Text="{Binding Title}" Margin="20,0,0,0" />
                 </DataTemplate>
             </phone:LongListSelector.ItemTemplate>
             <phone:LongListSelector.GroupHeaderTemplate>
