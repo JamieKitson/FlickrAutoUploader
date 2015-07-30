@@ -48,8 +48,6 @@ namespace PhoneClassLibrary1
             return (testResult != null) && (!testResult.HasError);
         }
 
-        private static FlickrResult<string> uploadResult;
-        private static FlickrResult<PhotoCollection> searchResult;
         private static bool flickrReturned;
 
         public static async Task Upload()
@@ -82,12 +80,14 @@ namespace PhoneClassLibrary1
                     string filenameTag = "file:name=" + p.Name;
                     PhotoSearchOptions so = new PhotoSearchOptions("me", hashTag);
                     flickrReturned = false;
+                    FlickrResult<PhotoCollection> searchResult = null;
                     f.PhotosSearchAsync(so, (ret) =>
                         {
                             searchResult = ret;
                             flickrReturned = true;
                         });
                     await waitForFlickrResult();
+                    checkResult(searchResult);
                     string PhotoID;
                     if (searchResult.Result.Count > 0)
                     {
@@ -104,12 +104,14 @@ namespace PhoneClassLibrary1
                         string tags = string.Join(", ", new string[] { filenameTag, hashTag, Settings.Tags, "\"" + album + "\"" });
                         ContentType ct = album == "Screenshots" ? ContentType.Screenshot : ContentType.Photo;
                         flickrReturned = false;
+                        FlickrResult<string> uploadResult = null;
                         f.UploadPictureAsync(p.GetImage(), p.Name, p.Name, string.Empty, tags, isPublic, isFamily, isFriends, ct, SafetyLevel.Safe, HiddenFromSearch.Visible, (ret) =>
                             {
                                 uploadResult = ret;
                                 flickrReturned = true;
                             });
                         await waitForFlickrResult();
+                        checkResult(uploadResult);
                         if (uploadResult.HasError)
                             throw new Exception(uploadResult.ErrorMessage);
                         PhotoID = uploadResult.Result;
@@ -123,11 +125,14 @@ namespace PhoneClassLibrary1
                     {
                         Settings.DebugLog("Adding to Flickr album " + FlickrAlbum.Title);
                         flickrReturned = false;
+                        FlickrResult<NoResponse> AddToSetResult = null;
                         f.PhotosetsAddPhotoAsync(FlickrAlbum.PhotosetId, PhotoID, ret =>
                             {
+                                AddToSetResult = ret;
                                 flickrReturned = true;
                             });
                         await waitForFlickrResult();
+                        checkResult(AddToSetResult);
                     }
                     Settings.StartFrom = p.Date;
                 }
@@ -150,32 +155,17 @@ namespace PhoneClassLibrary1
 
         private static void checkResult<T>(FlickrResult<T> res)
         {
+            if (res == null)
+                throw new Exception("Flickr call returned null.");
             if (res.HasError)
             {
+                if ((res.ErrorCode == 3) && (res.ErrorMessage == "Photo already in set"))
+                    return;
                 if (!string.IsNullOrEmpty(res.ErrorMessage))
-                    throw new Exception("Error: " + res.ErrorMessage);
+                    throw new Exception(res.ErrorMessage);
                 else if (res.Error != null)
-                    throw new Exception("Error: " + res.Error.Message);
+                    throw new Exception(res.Error.Message);
             }
-        }
-
-        private static FlickrResult<PhotosetCollection> AlbumListResult;
-        public static async Task<Dictionary<string, string>> GetAlbums()
-        {
-            Flickr f = MyFlickr.getFlickr();
-            flickrReturned = false;
-            AlbumListResult = null;
-            f.PhotosetsGetListAsync((ret) =>
-            {
-                flickrReturned = true;
-                AlbumListResult = ret;
-            });
-            await waitForFlickrResult();
-            Dictionary<string, string> res = new Dictionary<string, string>();
-            if (AlbumListResult.HasError)
-                return res;
-            AlbumListResult.Result.ToList().ForEach(album => res.Add(album.PhotosetId, album.Title));
-            return res;
         }
 
     }
