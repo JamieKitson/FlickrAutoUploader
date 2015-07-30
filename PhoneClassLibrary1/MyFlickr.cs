@@ -83,7 +83,7 @@ namespace PhoneClassLibrary1
                     if (searchResult.Count > 0)
                     {
                         PhotoID = searchResult[0].PhotoId;
-                        Settings.DebugLog("Already uploaded, skipping.");
+                        Settings.DebugLog("Already uploaded, skipping. PhotoID: " + PhotoID);
                     }
                     else
                     {
@@ -95,7 +95,7 @@ namespace PhoneClassLibrary1
                         string tags = string.Join(", ", new string[] { filenameTag, hashTag, Settings.Tags, "\"" + album + "\"" });
                         ContentType ct = album == "Screenshots" ? ContentType.Screenshot : ContentType.Photo;
                         PhotoID = await f.UploadPictureAsync(p.GetImage(), p.Name, p.Name, string.Empty, tags, isPublic, isFamily, isFriends, ct, SafetyLevel.Safe, HiddenFromSearch.Visible);
-                        Settings.LogInfo("Uploaded: " + p.Name);
+                        Settings.LogInfo("Uploaded: " + p.Name + " FlickrID: " + PhotoID);
                     }
                     if (FlickrAlbum == null)
                     {

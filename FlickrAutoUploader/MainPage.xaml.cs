@@ -271,7 +271,7 @@ namespace FlickrAutoUploader
         private void Run_Click(object sender, RoutedEventArgs e)
         {
             if (Debugger.IsAttached)
-                ScheduledActionService.LaunchForTest(RIT_NAME, TimeSpan.FromMilliseconds(2000));
+                ScheduledActionService.LaunchForTest(RIT_NAME, TimeSpan.FromMilliseconds(5000));
         }
 
         private void PrivacyPicker_SelectionChanged(object sender, SelectionChangedEventArgs e)
