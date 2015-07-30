@@ -311,7 +311,7 @@ namespace FlickrAutoUploader
             f.PhotosetsGetListAsync((ret) => 
             {
                 FlickrAlbumList.SelectionChanged -= FlickrAlbumList_SelectionChanged;
-                ret.Result.Insert(0, new Photoset() { PhotosetId = string.Empty, Title = "-- None --" });
+                ret.Result.Add(new Photoset() { PhotosetId = string.Empty, Title = "-- None --" });
                 FlickrAlbumList.ItemsSource = AlphaKeyGroup<Photoset>.CreateGroups(ret.Result, Thread.CurrentThread.CurrentUICulture, (Photoset p) => { return p.Title; }, true);
                 ShowFlickrAlbums.IsEnabled = true;
                 if (Settings.FlickrAlbum == null)
