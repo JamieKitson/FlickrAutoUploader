@@ -62,10 +62,15 @@ namespace PhoneClassLibrary1
 
                 List<StorageFile> pics = new List<StorageFile>();
                 IReadOnlyList<StorageFolder> albums = await KnownFolders.PicturesLibrary.GetFoldersAsync();
-                foreach(StorageFolder album in albums.Where(folder => checkedAlbums.Contains(folder.Name)))
+                foreach (StorageFolder album in albums.Where(folder => checkedAlbums.Contains(folder.Name)))
                 {
                     IReadOnlyList<StorageFile> files = await album.GetFilesAsync();
-                    pics.AddRange(files.Where(file => file.DateCreated > Settings.StartFrom));
+                    pics.AddRange(files
+                        .Where(file => file.DateCreated > Settings.StartFrom)
+                        .GroupBy(file => file.Name.Replace("hires", string.Empty))
+                        .Select(
+                            group => group.Where(file => file.Name.Contains("hires") || group.Count() == 1).ToList()[0]
+                        ));
                 }
 
                 Settings.DebugLog(pics.Count() + " pics taken since " + Settings.StartFrom);
