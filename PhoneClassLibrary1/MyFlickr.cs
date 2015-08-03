@@ -11,11 +11,13 @@ using System.Windows.Ink;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
-using System.Windows.Shapes;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Microsoft.Phone.Shell;
+using Windows.Storage;
+using Windows.Storage.Streams;
+using System.IO;
 
 namespace PhoneClassLibrary1
 {
@@ -57,23 +59,25 @@ namespace PhoneClassLibrary1
             {
                 Flickr f = MyFlickr.getFlickr();
                 IList<string> checkedAlbums = Settings.SelectedPhoneAlbums;
-                // Apparently even without the where clause GetAvailableMediaSources will only ever return a single media source on Windows Phone
-                var sources = MediaSource.GetAvailableMediaSources().Where(s => s.MediaSourceType == MediaSourceType.LocalDevice);
-                if (sources.Count() != 1)
-                    throw new Exception(sources.Count() + " media sources found.");
-                MediaLibrary medLib = new MediaLibrary(sources.First());
-                IEnumerable<Picture> pics = medLib.RootPictureAlbum.Albums
-                    .Where(a => checkedAlbums.Contains(a.Name)) // Get selected albums
-                    .SelectMany(a => a.Pictures)                // Get all pictures from selected albums
-                    .Where(p => p.Date > Settings.StartFrom)    // Only pictures more recent than the last upload
-                    .OrderBy(p => p.Date);                      // Order by date taken so that we upload the oldest first
+
+                List<StorageFile> pics = new List<StorageFile>();
+                IReadOnlyList<StorageFolder> albums = await KnownFolders.PicturesLibrary.GetFoldersAsync();
+                foreach(StorageFolder album in albums.Where(folder => checkedAlbums.Contains(folder.Name)))
+                {
+                    IReadOnlyList<StorageFile> files = await album.GetFilesAsync();
+                    pics.AddRange(files.Where(file => file.DateCreated > Settings.StartFrom));
+                }
+
                 Settings.DebugLog(pics.Count() + " pics taken since " + Settings.StartFrom);
-                foreach (Picture p in pics)
+                foreach (StorageFile p in pics.OrderBy(file => file.DateCreated))
                 {
                     Settings.DebugLog("Found picture " + p.Name);
                     // MD5Managed hash = new MD5Managed();
                     SHA1Managed hash = new SHA1Managed();
-                    hash.ComputeHash(p.GetImage());
+                    MemoryStream stream = new MemoryStream();
+                    await RandomAccessStream.CopyAsync(await p.OpenSequentialReadAsync(), stream.AsOutputStream());
+                    stream.Seek(0, 0);
+                    hash.ComputeHash(stream);
                     // string hashTag = "file:md5sum=" + 
                     string hashTag = "file:sha1sig=" + BitConverter.ToString(hash.Hash).Replace("-", string.Empty);
                     string filenameTag = "file:name=" + p.Name;
@@ -91,10 +95,11 @@ namespace PhoneClassLibrary1
                         bool isPublic = Settings.Privacy == Settings.ePrivacy.Public;
                         bool isFriends = (Settings.Privacy & Settings.ePrivacy.Friends) > 0;
                         bool isFamily = (Settings.Privacy & Settings.ePrivacy.Family) > 0;
-                        string album = p.Album.Name;
+                        string album = Path.GetFileName(Path.GetDirectoryName(p.Path));
                         string tags = string.Join(", ", new string[] { filenameTag, hashTag, Settings.Tags, "\"" + album + "\"" });
                         ContentType ct = album == "Screenshots" ? ContentType.Screenshot : ContentType.Photo;
-                        PhotoID = await f.UploadPictureAsync(p.GetImage(), p.Name, p.Name, string.Empty, tags, isPublic, isFamily, isFriends, ct, SafetyLevel.Safe, HiddenFromSearch.Visible);
+                        stream.Seek(0, 0);
+                        PhotoID = await f.UploadPictureAsync(stream, p.Name, p.Name, string.Empty, tags, isPublic, isFamily, isFriends, ct, SafetyLevel.Safe, HiddenFromSearch.Visible);
                         Settings.LogInfo("Uploaded: " + p.Name + " FlickrID: " + PhotoID);
                     }
                     if (FlickrAlbum == null)
@@ -114,7 +119,7 @@ namespace PhoneClassLibrary1
                                 throw;
                         }
                     }
-                    Settings.StartFrom = p.Date;
+                    Settings.StartFrom = p.DateCreated.DateTime;
                 }
                 Settings.UploadsFailed = 0;
             }

@@ -23,6 +23,7 @@ using Microsoft.Phone.Tasks;
 using System.Diagnostics;
 using Microsoft.Phone.Globalization;
 using System.Globalization;
+using Windows.Storage;
 
 namespace FlickrAutoUploader
 {
@@ -146,27 +147,20 @@ namespace FlickrAutoUploader
             }
         }
 
-        private void LoadPhoneAlbums()
+        private async void LoadPhoneAlbums()
         {
             PhoneAlbumList.Children.Clear();
             IList<string> checkedPhoneAlbums = Settings.SelectedPhoneAlbums;
-            foreach (MediaSource source in MediaSource.GetAvailableMediaSources())
+            IReadOnlyList<StorageFolder> allAlbums = await KnownFolders.PicturesLibrary.GetFoldersAsync();
+            foreach (StorageFolder album in allAlbums)
             {
-                if (source.MediaSourceType == MediaSourceType.LocalDevice)
-                {
-                    MediaLibrary medLib = new MediaLibrary(source);
-                    PictureAlbumCollection allAlbums = medLib.RootPictureAlbum.Albums;
-                    foreach (PictureAlbum album in allAlbums)
-                    {
-                        CheckBox cb = new CheckBox();
-                        cb.Content = album.Name;
-                        cb.IsChecked = checkedPhoneAlbums.Contains(album.Name);
-                        cb.Checked += PhoneAlbum_Checked;
-                        cb.Unchecked += PhoneAlbum_Unchecked;
-                        cb.Margin = new Thickness(0, 0, 0, -10);
-                        PhoneAlbumList.Children.Add(cb);
-                    }
-                }
+                CheckBox cb = new CheckBox();
+                cb.Content = album.Name;
+                cb.IsChecked = checkedPhoneAlbums.Contains(album.Name);
+                cb.Checked += PhoneAlbum_Checked;
+                cb.Unchecked += PhoneAlbum_Unchecked;
+                cb.Margin = new Thickness(0, 0, 0, -10);
+                PhoneAlbumList.Children.Add(cb);
             }
         }
 

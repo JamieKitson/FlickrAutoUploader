@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/2010/manifest" xmlns:m2="http://schemas.microsoft.com/appx/2013/manifest" xmlns:m3="http://schemas.microsoft.com/appx/2014/manifest" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest">
-  <Identity Name="51449JamieKitson.FlickrAutoUploader" Publisher="CN=73E2EF68-97F0-44FF-AB69-C25D8B3C6AA7" Version="1.2.0.0" />
+  <Identity Name="51449JamieKitson.FlickrAutoUploader" Publisher="CN=73E2EF68-97F0-44FF-AB69-C25D8B3C6AA7" Version="1.4.0.0" />
   <mp:PhoneIdentity PhoneProductId="a8d961f4-04a8-4b46-8a60-80a17ad23afa" PhonePublisherId="1e12b22f-b382-41f9-9b03-e4c23d927dad" />
   <Properties>
     <DisplayName>Flickr Auto Uploader</DisplayName>
@@ -38,4 +38,7 @@
       </InProcessServer>
     </Extension>
   </Extensions>
+  <Capabilities>
+    <Capability Name="picturesLibrary" />
+  </Capabilities>
 </Package>
