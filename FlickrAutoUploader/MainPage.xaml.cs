@@ -41,6 +41,7 @@ namespace FlickrAutoUploader
             PopulatePrivacy();
             FixPrivacyItmemsBackground();
             dpUploadFrom.Value = Settings.StartFrom;
+            dpUploadFrom.ValueChanged += dpUploadFrom_ValueChanged;
             tbTags.Text = Settings.Tags;
             slLogLevel.Value = Settings.LogLevel;
             if (Debugger.IsAttached)
@@ -248,7 +249,7 @@ namespace FlickrAutoUploader
 
         private void dpUploadFrom_ValueChanged(object sender, DateTimeValueChangedEventArgs e)
         {
-            Settings.StartFrom = (DateTime)dpUploadFrom.Value;
+            Settings.StartFrom = (DateTime)dpUploadFrom.Value.Value.Date;
         }
 
         protected override void OnBackKeyPress(System.ComponentModel.CancelEventArgs e)

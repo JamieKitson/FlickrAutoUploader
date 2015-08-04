@@ -33,7 +33,7 @@
                 <toolkit:ToggleSwitch Content="Enabled" x:Name="tgEnabled" Unchecked="tgEnabled_Unchecked" HorizontalAlignment="Left" Width="422" Margin="-12,0,0,-20" />
                 <StackPanel Orientation="Horizontal">
                     <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" Width="249" Text="Upload photos taken since:" />
-                    <toolkit:DatePicker x:Name="dpUploadFrom" ValueChanged="dpUploadFrom_ValueChanged" HorizontalContentAlignment="Center" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                    <toolkit:DatePicker x:Name="dpUploadFrom" HorizontalContentAlignment="Center" HorizontalAlignment="Left" VerticalAlignment="Center" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
                     <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" Text="Privacy:" Width="131" />
