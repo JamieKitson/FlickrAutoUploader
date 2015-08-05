@@ -18,6 +18,12 @@ using Microsoft.Phone.Shell;
 using Windows.Storage;
 using Windows.Storage.Streams;
 using System.IO;
+using System.Text.RegularExpressions;
+using System.Xml;
+using System.Text;
+using System.Globalization;
+using System.Net.Http;
+using System.Net.Http.Headers;
 
 namespace PhoneClassLibrary1
 {
@@ -51,6 +57,7 @@ namespace PhoneClassLibrary1
             }
         }
 
+        const string HIGHRES = "highres";
         public static async Task Upload()
         {
             Settings.ClearLog();
@@ -67,9 +74,9 @@ namespace PhoneClassLibrary1
                     IReadOnlyList<StorageFile> files = await album.GetFilesAsync();
                     pics.AddRange(files
                         .Where(file => file.DateCreated > Settings.StartFrom)
-                        .GroupBy(file => file.Name.Replace("hires", string.Empty))
+                        .GroupBy(file => file.Name.Replace(HIGHRES, string.Empty))
                         .Select(
-                            group => group.Where(file => file.Name.Contains("hires") || group.Count() == 1).ToList()[0]
+                            group => group.Where(file => !file.Name.Contains(HIGHRES) || group.Count() == 1).ToList()[0]
                         ));
                 }
 
@@ -79,50 +86,58 @@ namespace PhoneClassLibrary1
                     Settings.DebugLog("Found picture " + p.Name);
                     // MD5Managed hash = new MD5Managed();
                     SHA1Managed hash = new SHA1Managed();
-                    MemoryStream stream = new MemoryStream();
-                    await RandomAccessStream.CopyAsync(await p.OpenSequentialReadAsync(), stream.AsOutputStream());
-                    stream.Seek(0, 0);
-                    hash.ComputeHash(stream);
-                    // string hashTag = "file:md5sum=" + 
-                    string hashTag = "file:sha1sig=" + BitConverter.ToString(hash.Hash).Replace("-", string.Empty);
-                    string filenameTag = "file:name=" + p.Name;
-                    PhotoSearchOptions so = new PhotoSearchOptions("me", hashTag);
-                    PhotoCollection searchResult = await f.PhotosSearchAsync(so);
-                    string PhotoID;
-                    if (searchResult.Count > 0)
+                    FileStream stream = new FileStream(Path.GetTempFileName(), FileMode.Create);
+                    try
                     {
-                        PhotoID = searchResult[0].PhotoId;
-                        Settings.DebugLog("Already uploaded, skipping. PhotoID: " + PhotoID);
-                    }
-                    else
-                    {
-                        Settings.DebugLog("Uploading...");
-                        bool isPublic = Settings.Privacy == Settings.ePrivacy.Public;
-                        bool isFriends = (Settings.Privacy & Settings.ePrivacy.Friends) > 0;
-                        bool isFamily = (Settings.Privacy & Settings.ePrivacy.Family) > 0;
-                        string album = Path.GetFileName(Path.GetDirectoryName(p.Path));
-                        string tags = string.Join(", ", new string[] { filenameTag, hashTag, Settings.Tags, "\"" + album + "\"" });
-                        ContentType ct = album == "Screenshots" ? ContentType.Screenshot : ContentType.Photo;
+                        await RandomAccessStream.CopyAsync(await p.OpenSequentialReadAsync(), stream.AsOutputStream());
                         stream.Seek(0, 0);
-                        PhotoID = await f.UploadPictureAsync(stream, p.Name, p.Name, string.Empty, tags, isPublic, isFamily, isFriends, ct, SafetyLevel.Safe, HiddenFromSearch.Visible);
-                        Settings.LogInfo("Uploaded: " + p.Name + " FlickrID: " + PhotoID);
-                    }
-                    if (FlickrAlbum == null)
-                    {
-                        Settings.DebugLog("No Flickr album set, not adding to album.");
-                    }
-                    else
-                    {
-                        Settings.DebugLog("Adding to Flickr album " + FlickrAlbum.Title);
-                        try
+                        hash.ComputeHash(stream);
+                        // string hashTag = "file:md5sum=" + 
+                        string hashTag = "file:sha1sig=" + BitConverter.ToString(hash.Hash).Replace("-", string.Empty);
+                        string filenameTag = "file:name=" + p.Name;
+                        PhotoSearchOptions so = new PhotoSearchOptions("me", hashTag);
+                        PhotoCollection searchResult = await f.PhotosSearchAsync(so);
+                        string PhotoID;
+                        if (searchResult.Count > 0)
                         {
-                            await f.PhotosetsAddPhotoAsync(FlickrAlbum.PhotosetId, PhotoID);
+                            PhotoID = searchResult[0].PhotoId;
+                            Settings.DebugLog("Already uploaded, skipping. PhotoID: " + PhotoID);
                         }
-                        catch (FlickrApiException ex)
+                        else
                         {
-                            if (ex.Code != 3) // Photo already in set
-                                throw;
+                            Settings.DebugLog("Uploading...");
+                            bool isPublic = Settings.Privacy == Settings.ePrivacy.Public;
+                            bool isFriends = (Settings.Privacy & Settings.ePrivacy.Friends) > 0;
+                            bool isFamily = (Settings.Privacy & Settings.ePrivacy.Family) > 0;
+                            string album = Path.GetFileName(Path.GetDirectoryName(p.Path));
+                            string tags = string.Join(", ", new string[] { filenameTag, hashTag, Settings.Tags, "\"" + album + "\"" });
+                            ContentType ct = album == "Screenshots" ? ContentType.Screenshot : ContentType.Photo;
+                            stream.Seek(0, 0);
+                            PhotoID = await UploadPictureAsync(stream, p.Name, p.Name, string.Empty, tags, isPublic, isFamily, isFriends, ct, SafetyLevel.Safe, HiddenFromSearch.Visible);
+                            Settings.LogInfo("Uploaded: " + p.Name + " FlickrID: " + PhotoID);
                         }
+                        if (FlickrAlbum == null)
+                        {
+                            Settings.DebugLog("No Flickr album set, not adding to album.");
+                        }
+                        else
+                        {
+                            Settings.DebugLog("Adding to Flickr album " + FlickrAlbum.Title);
+                            try
+                            {
+                                await f.PhotosetsAddPhotoAsync(FlickrAlbum.PhotosetId, PhotoID);
+                            }
+                            catch (FlickrApiException ex)
+                            {
+                                if (ex.Code != 3) // Photo already in set
+                                    throw;
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        stream.Close();
+                        File.Delete(stream.Name);
                     }
                     Settings.StartFrom = p.DateCreated.DateTime;
                 }
@@ -141,6 +156,280 @@ namespace PhoneClassLibrary1
             }
         }
 
+        private const string UploadUrl = "https://up.flickr.com/services/upload/";
+        public static async Task<string> UploadPictureAsync(Stream stream, string filename, string title, string description, string tags, bool isPublic, bool isFamily, bool isFriend, ContentType contentType, SafetyLevel safetyLevel, HiddenFromSearch hiddenFromSearch)
+        {
+            var parameters = new Dictionary<string, string>();
+
+            if (!string.IsNullOrEmpty(title))
+            {
+                parameters.Add("title", title);
+            }
+            if (!string.IsNullOrEmpty(description))
+            {
+                parameters.Add("description", description);
+            }
+            if (!string.IsNullOrEmpty(tags))
+            {
+                parameters.Add("tags", tags);
+            }
+
+            parameters.Add("is_public", isPublic ? "1" : "0");
+            parameters.Add("is_friend", isFriend ? "1" : "0");
+            parameters.Add("is_family", isFamily ? "1" : "0");
+
+            if (safetyLevel != SafetyLevel.None)
+            {
+                parameters.Add("safety_level", safetyLevel.ToString("D"));
+            }
+            if (contentType != ContentType.None)
+            {
+                parameters.Add("content_type", contentType.ToString("D"));
+            }
+            if (hiddenFromSearch != HiddenFromSearch.None)
+            {
+                parameters.Add("hidden", hiddenFromSearch.ToString("D"));
+            }
+
+            FlickrResponder.OAuthGetBasicParameters(parameters);
+            parameters.Add("oauth_consumer_key", Secrets.apiKey);
+            parameters.Add("oauth_token", Settings.OAuthAccessToken);
+            parameters.Add("oauth_signature", OAuthCalculateSignature("POST", UploadUrl, parameters, Settings.OAuthAccessTokenSecret));
+
+            var boundary = FlickrResponder.CreateBoundary();
+            var data = FlickrResponder.CreateUploadData(stream, filename, parameters, boundary);
+
+            var oauthHeader = FlickrResponder.OAuthCalculateAuthHeader(parameters);
+            var contentTypeHeader = "multipart/form-data; boundary=" + boundary;
+
+            var response = await FlickrResponder.UploadDataAsync(UploadUrl, data, contentTypeHeader, oauthHeader);
+
+            var match = Regex.Match(response, "<photoid>(\\d+)</photoid>");
+            if (match.Success)
+            {
+                return match.Groups[1].Value;
+            }
+
+            using (var reader = XmlReader.Create(new StringReader(response), new XmlReaderSettings { IgnoreWhitespace = true }))
+            {
+                if (!reader.ReadToDescendant("rsp"))
+                {
+                    throw new XmlException("Unable to find response element 'rsp' in Flickr response");
+                }
+                while (reader.MoveToNextAttribute())
+                {
+                    if (reader.LocalName == "stat" && reader.Value == "fail")
+                        throw ExceptionHandler.CreateResponseException(reader);
+                }
+
+            }
+
+            throw new FlickrException("Unable to determine photo id from upload response: " + response);
+        }
+
+        internal static string OAuthCalculateSignature(string method, string url, IDictionary<string, string> parameters, string tokenSecret)
+        {
+            var key = Secrets.apiSecret + "&" + tokenSecret;
+            var keyBytes = Encoding.UTF8.GetBytes(key);
+            /*
+            var sorted = new SortedList<string, string>();
+            foreach (var pair in parameters)
+            {
+                sorted.Add(pair.Key, pair.Value);
+            }
+            */
+            
+            var sb = new StringBuilder();
+            foreach (var pair in parameters.OrderBy(p => p.Key))
+            {
+                sb.Append(pair.Key);
+                sb.Append("=");
+                sb.Append(UtilityMethods.EscapeOAuthString(pair.Value));
+                sb.Append("&");
+            }
+
+            sb.Remove(sb.Length - 1, 1);
+
+            var baseString = method + "&" + UtilityMethods.EscapeOAuthString(url) + "&" +
+                                UtilityMethods.EscapeOAuthString(sb.ToString());
+
+            var hash = Sha1Hash(keyBytes, baseString);
+
+            return hash;
+        }
+
+        internal static string Sha1Hash(byte[] key, string basestring)
+        {
+            var sha1 = new System.Security.Cryptography.HMACSHA1(key);
+
+            var hashBytes = sha1.ComputeHash(Encoding.UTF8.GetBytes(basestring));
+
+            return Convert.ToBase64String(hashBytes);
+        }
+
+        internal static partial class FlickrResponder
+        {
+
+            public static void OAuthGetBasicParameters(IDictionary<string, string> parameters)
+            {
+                var oAuthParameters = OAuthGetBasicParameters();
+                foreach (var k in oAuthParameters)
+                {
+                    parameters.Add(k.Key, k.Value);
+                }
+            }
+
+            private static IEnumerable<KeyValuePair<string, string>> OAuthGetBasicParameters()
+            {
+                var oauthtimestamp = UtilityMethods.DateToUnixTimestamp(DateTime.UtcNow);
+                var oauthnonce = Guid.NewGuid().ToString("N");
+
+                var parameters = new Dictionary<string, string>
+                                 {
+                                     {"oauth_nonce", oauthnonce},
+                                     {"oauth_timestamp", oauthtimestamp},
+                                     {"oauth_version", "1.0"},
+                                     {"oauth_signature_method", "HMAC-SHA1"}
+                                 };
+                return parameters;
+            }
+
+            public static string CreateBoundary()
+            {
+                return "----FLICKR_MIME_" + DateTime.Now.ToString("yyyyMMddhhmmss", DateTimeFormatInfo.InvariantInfo) + "--";
+            }
+
+            //public static Stream CreateUploadData(Stream imageStream, string filename, IDictionary<string, string> parameters, string boundary)
+            public static byte[] CreateUploadData(Stream imageStream, string filename, IDictionary<string, string> parameters, string boundary)
+            {
+                var body = new MimeBody
+                {
+                    Boundary = boundary,
+                    MimeParts = parameters
+                    .Where(p => !p.Key.StartsWith("oauth_"))
+                    .Select(p => (MimePart)new FormDataPart { Name = p.Key, Value = p.Value }).ToList()
+                };
+
+                var binaryPart = new BinaryPart
+                {
+                    Name = "photo",
+                    ContentType = "image/jpeg",
+                    Filename = filename
+                };
+                binaryPart.LoadContent(imageStream);
+                body.MimeParts.Add(binaryPart);
+
+                //var stream = new FileStream(Path.GetTempFileName(), FileMode.Create);
+                using (var stream = new MemoryStream())
+                {
+                    body.WriteTo(stream);
+                    //stream.Position = 0;
+                    //return stream; // .ToArray();
+                    return stream.ToArray();
+                }
+            }
+
+            public static string OAuthCalculateAuthHeader(IDictionary<string, string> parameters)
+            {
+                // Silverlight < 5 doesn't support modification of the Authorization header, so all data must be sent in post body.
+#if SILVERLIGHT
+                return "";
+#else
+            var sb = new StringBuilder("OAuth ");
+            foreach (var pair in parameters)
+            {
+                if (pair.Key.StartsWith("oauth"))
+                {
+                    sb.Append(pair.Key + "=\"" + Uri.EscapeDataString(pair.Value) + "\",");
+                }
+            }
+            return sb.Remove(sb.Length - 1, 1).ToString();
+#endif
+            }
+
+
+            //internal static async Task<string> UploadDataAsync(string url, Stream data, string contentTypeHeader, string oauthHeader)
+            internal static async Task<string> UploadDataAsync(string url, byte[] data, string contentTypeHeader, string oauthHeader)
+            {
+                var client = new HttpClient();
+
+                if (!String.IsNullOrEmpty(oauthHeader)) client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("OAuth", oauthHeader.Replace("OAuth ", ""));
+
+                var content = new ByteArrayContent(data);
+                content.Headers.ContentType = MediaTypeHeaderValue.Parse(contentTypeHeader);
+                var response = await client.PostAsync(new Uri(url), content);
+                return await response.Content.ReadAsStringAsync();
+            }
+
+        }
+
+        internal class MimeBody : MimePart
+        {
+            public string Boundary { get; set; }
+            public List<MimePart> MimeParts { get; set; }
+
+            public override void WriteTo(Stream stream)
+            {
+                var boundaryBytes = Encoding.UTF8.GetBytes("--" + Boundary + "\r\n");
+
+                foreach (var part in MimeParts)
+                {
+                    stream.Write(boundaryBytes, 0, boundaryBytes.Length);
+                    part.WriteTo(stream);
+                }
+
+                var endBoundaryBytes = Encoding.UTF8.GetBytes("--" + Boundary + "--\r\n");
+                stream.Write(endBoundaryBytes, 0, endBoundaryBytes.Length);
+            }
+        }
+
+        internal abstract class MimePart
+        {
+            public abstract void WriteTo(Stream stream);
+        }
+
+        internal class FormDataPart : MimePart
+        {
+            public string Name { get; set; }
+            public string Value { get; set; }
+
+            public override void WriteTo(Stream stream)
+            {
+                var sw = new StreamWriter(stream);
+                sw.WriteLine("Content-Disposition: form-data; name=\"" + Name + "\"");
+                sw.WriteLine();
+                sw.WriteLine(Value);
+                sw.Flush();
+            }
+        }
+
+        internal class BinaryPart : MimePart
+        {
+            public string Name { get; set; }
+            public string Filename { get; set; }
+            public string ContentType { get; set; }
+            public byte[] Content { get; private set; }
+
+            public void LoadContent(Stream stream)
+            {
+                Content = new byte[stream.Length];
+                stream.Read(Content, 0, Content.Length);
+            }
+
+            public override void WriteTo(Stream stream)
+            {
+                var sw = new StreamWriter(stream);
+                sw.WriteLine("Content-Disposition: form-data; name=\"" + Name + "\"; filename=\"" + Filename + "\"");
+                sw.WriteLine("Content-Type: " + ContentType);
+                sw.WriteLine();
+                sw.Flush();
+
+                stream.Write(Content, 0, Content.Length);
+
+                sw.WriteLine();
+                sw.Flush();
+            }
+        }
     }
 
 
