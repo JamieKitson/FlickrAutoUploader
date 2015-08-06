@@ -57,7 +57,7 @@ namespace PhoneClassLibrary1
             }
         }
 
-        const string HIGHRES = "highres";
+        const string HIGHRES = "__highres";
         public static async Task Upload()
         {
             Settings.ClearLog();
@@ -76,7 +76,7 @@ namespace PhoneClassLibrary1
                         .Where(file => file.DateCreated > Settings.StartFrom)
                         .GroupBy(file => file.Name.Replace(HIGHRES, string.Empty))
                         .Select(
-                            group => group.Where(file => !file.Name.Contains(HIGHRES) || group.Count() == 1).ToList()[0]
+                            group => group.Where(file => file.Name.Contains(HIGHRES) || group.Count() == 1).ToList()[0]
                         ));
                 }
 
@@ -155,7 +155,7 @@ namespace PhoneClassLibrary1
                     Settings.DebugLog("Error uploading: " + ex.Message);
             }
         }
-
+        // *
         private const string UploadUrl = "https://up.flickr.com/services/upload/";
         public static async Task<string> UploadPictureAsync(Stream stream, string filename, string title, string description, string tags, bool isPublic, bool isFamily, bool isFriend, ContentType contentType, SafetyLevel safetyLevel, HiddenFromSearch hiddenFromSearch)
         {
@@ -237,7 +237,7 @@ namespace PhoneClassLibrary1
             {
                 sorted.Add(pair.Key, pair.Value);
             }
-            */
+            */ // *
             
             var sb = new StringBuilder();
             foreach (var pair in parameters.OrderBy(p => p.Key))
@@ -299,8 +299,8 @@ namespace PhoneClassLibrary1
                 return "----FLICKR_MIME_" + DateTime.Now.ToString("yyyyMMddhhmmss", DateTimeFormatInfo.InvariantInfo) + "--";
             }
 
-            //public static Stream CreateUploadData(Stream imageStream, string filename, IDictionary<string, string> parameters, string boundary)
-            public static byte[] CreateUploadData(Stream imageStream, string filename, IDictionary<string, string> parameters, string boundary)
+            public static Stream CreateUploadData(Stream imageStream, string filename, IDictionary<string, string> parameters, string boundary)
+            //public static byte[] CreateUploadData(Stream imageStream, string filename, IDictionary<string, string> parameters, string boundary)
             {
                 var body = new MimeBody
                 {
@@ -319,22 +319,22 @@ namespace PhoneClassLibrary1
                 binaryPart.LoadContent(imageStream);
                 body.MimeParts.Add(binaryPart);
 
-                //var stream = new FileStream(Path.GetTempFileName(), FileMode.Create);
-                using (var stream = new MemoryStream())
-                {
+                var stream = new FileStream(Path.GetTempFileName(), FileMode.Create);
+                //using (var stream = new MemoryStream())
+                //{
                     body.WriteTo(stream);
                     //stream.Position = 0;
-                    //return stream; // .ToArray();
-                    return stream.ToArray();
-                }
+                    return stream; // .ToArray();
+                    //return stream.ToArray();
+                //}
             }
 
             public static string OAuthCalculateAuthHeader(IDictionary<string, string> parameters)
             {
                 // Silverlight < 5 doesn't support modification of the Authorization header, so all data must be sent in post body.
-#if SILVERLIGHT
-                return "";
-#else
+//#if SILVERLIGHT
+//                return "";
+//#else
             var sb = new StringBuilder("OAuth ");
             foreach (var pair in parameters)
             {
@@ -344,18 +344,20 @@ namespace PhoneClassLibrary1
                 }
             }
             return sb.Remove(sb.Length - 1, 1).ToString();
-#endif
+//#endif
             }
 
 
-            //internal static async Task<string> UploadDataAsync(string url, Stream data, string contentTypeHeader, string oauthHeader)
-            internal static async Task<string> UploadDataAsync(string url, byte[] data, string contentTypeHeader, string oauthHeader)
+            internal static async Task<string> UploadDataAsync(string url, Stream data, string contentTypeHeader, string oauthHeader)
+            //internal static async Task<string> UploadDataAsync(string url, byte[] data, string contentTypeHeader, string oauthHeader)
             {
                 var client = new HttpClient();
 
                 if (!String.IsNullOrEmpty(oauthHeader)) client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("OAuth", oauthHeader.Replace("OAuth ", ""));
 
-                var content = new ByteArrayContent(data);
+                //var content = new ByteArrayContent(data);
+                data.Position = 0;
+                var content = new StreamContent(data);
                 content.Headers.ContentType = MediaTypeHeaderValue.Parse(contentTypeHeader);
                 var response = await client.PostAsync(new Uri(url), content);
                 return await response.Content.ReadAsStringAsync();
@@ -408,12 +410,16 @@ namespace PhoneClassLibrary1
             public string Name { get; set; }
             public string Filename { get; set; }
             public string ContentType { get; set; }
-            public byte[] Content { get; private set; }
+            //public byte[] Content { get; private set; }
+            public FileStream Content { get; private set; }
 
             public void LoadContent(Stream stream)
             {
-                Content = new byte[stream.Length];
-                stream.Read(Content, 0, Content.Length);
+                //Content = new byte[stream.Length];
+                //stream.Read(Content, 0, Content.Length);
+                Content = new FileStream(Path.GetTempFileName(), FileMode.Create);
+                stream.Position = 0;
+                stream.CopyTo(Content);
             }
 
             public override void WriteTo(Stream stream)
@@ -424,13 +430,15 @@ namespace PhoneClassLibrary1
                 sw.WriteLine();
                 sw.Flush();
 
-                stream.Write(Content, 0, Content.Length);
+                //stream.Write(Content, 0, Content.Length);
+                Content.Position = 0;
+                Content.CopyTo(stream);
 
                 sw.WriteLine();
                 sw.Flush();
             }
         }
+// */
     }
-
 
 }
