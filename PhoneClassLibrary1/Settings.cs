@@ -104,7 +104,7 @@ namespace PhoneClassLibrary1
         private const string START_FROM = "startfrom";
         public static DateTime StartFrom
         {
-            get { return GetSetting(START_FROM, DateTime.Now); }
+            get { return GetSetting(START_FROM, DateTime.Now.Date); }
             set { SetSetting(START_FROM, value); }
         }
 
