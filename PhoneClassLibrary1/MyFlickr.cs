@@ -202,7 +202,8 @@ namespace PhoneClassLibrary1
             var oauthHeader = FlickrResponder.OAuthCalculateAuthHeader(parameters);
             var contentTypeHeader = "multipart/form-data; boundary=" + boundary;
 
-            var response = await FlickrResponder.UploadDataAsync(UploadUrl, data, contentTypeHeader, oauthHeader);
+            var response = await FlickrResponder.UploadDataHttpWebRequestAsync(UploadUrl, data, contentTypeHeader, oauthHeader);
+            //var response = await FlickrResponder.UploadDataAsync(stream, title, new Uri(UploadUrl), parameters);
 
             var match = Regex.Match(response, "<photoid>(\\d+)</photoid>");
             if (match.Success)
@@ -323,7 +324,7 @@ namespace PhoneClassLibrary1
                 //using (var stream = new MemoryStream())
                 //{
                     body.WriteTo(stream);
-                    //stream.Position = 0;
+                    stream.Position = 0;
                     return stream; // .ToArray();
                     //return stream.ToArray();
                 //}
@@ -348,21 +349,68 @@ namespace PhoneClassLibrary1
             }
 
 
-            internal static async Task<string> UploadDataAsync(string url, Stream data, string contentTypeHeader, string oauthHeader)
+            internal static async Task<string> UploadDataHttpWebRequestAsync(string url, Stream dataBuffer, string contentTypeHeader, string authHeader)
+            //internal static async Task<string> UploadDataAsync(Stream imageStream, string fileName, Uri uploadUri, Dictionary<string, string> parameters)
+            {
+                /*
+                var boundary = "FLICKR_MIME_" + DateTime.Now.ToString("yyyyMMddhhmmss", System.Globalization.DateTimeFormatInfo.InvariantInfo);
+
+                var authHeader = FlickrResponder.OAuthCalculateAuthHeader(parameters);
+                var dataBuffer = CreateUploadData(imageStream, fileName, parameters, boundary);
+                */
+
+                var req = (HttpWebRequest)WebRequest.Create(url);
+                req.Method = "POST";
+                //if (Proxy != null) 
+                  //  req.Proxy = Proxy;
+                //req.Timeout = HttpTimeout;                
+                //req.ContentType = "multipart/form-data; boundary=" + boundary;
+                req.ContentType = contentTypeHeader;
+
+                if (!string.IsNullOrEmpty(authHeader))
+                {
+                    req.Headers["Authorization"] = authHeader;
+                }
+
+                req.ContentLength = dataBuffer.Length;
+
+                using (var reqStream = await req.GetRequestStreamAsync())
+                //using (var reqStream = req.GetRequestStream())
+                {
+                    var bufferSize = 32 * 1024;
+                    if (dataBuffer.Length / 100 > bufferSize) bufferSize = bufferSize * 2;
+                    // dataBuffer.UploadProgress += (o, e) => { if (OnUploadProgress != null) OnUploadProgress(this, e); };
+                    dataBuffer.CopyTo(reqStream, bufferSize);
+                    reqStream.Flush();
+                }
+
+                //var res = (HttpWebResponse)req.GetResponse();
+                var res = (HttpWebResponse) await req.GetResponseAsync();
+                var stream = res.GetResponseStream();
+                if (stream == null) throw new FlickrWebException("Unable to retrieve stream from web response.");
+
+                var sr = new StreamReader(stream);
+                var s = sr.ReadToEnd();
+                sr.Close();
+                return s;
+            }
+            /*
+            internal static async Task<string> UploadDataHttpClientAsync(string url, Stream data, string contentTypeHeader, string oauthHeader)
             //internal static async Task<string> UploadDataAsync(string url, byte[] data, string contentTypeHeader, string oauthHeader)
             {
                 var client = new HttpClient();
 
-                if (!String.IsNullOrEmpty(oauthHeader)) client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("OAuth", oauthHeader.Replace("OAuth ", ""));
+                if (!String.IsNullOrEmpty(oauthHeader)) 
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("OAuth", oauthHeader.Replace("OAuth ", ""));
 
                 //var content = new ByteArrayContent(data);
-                data.Position = 0;
+                //data.Position = 0;
                 var content = new StreamContent(data);
                 content.Headers.ContentType = MediaTypeHeaderValue.Parse(contentTypeHeader);
                 var response = await client.PostAsync(new Uri(url), content);
                 return await response.Content.ReadAsStringAsync();
             }
-
+            */
         }
 
         internal class MimeBody : MimePart
