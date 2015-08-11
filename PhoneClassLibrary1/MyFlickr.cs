@@ -198,7 +198,6 @@ namespace PhoneClassLibrary1
             try
             {
                 response = await FlickrResponder.UploadDataHttpWebRequestAsync(UploadUrl, data, contentTypeHeader, oauthHeader);
-                //var response = await FlickrResponder.UploadDataAsync(stream, title, new Uri(UploadUrl), parameters);
             }
             finally
             {
@@ -224,9 +223,7 @@ namespace PhoneClassLibrary1
                     if (reader.LocalName == "stat" && reader.Value == "fail")
                         throw ExceptionHandler.CreateResponseException(reader);
                 }
-
             }
-
             throw new FlickrException("Unable to determine photo id from upload response: " + response);
         }
 
@@ -234,14 +231,6 @@ namespace PhoneClassLibrary1
         {
             var key = Secrets.apiSecret + "&" + tokenSecret;
             var keyBytes = Encoding.UTF8.GetBytes(key);
-            /*
-            var sorted = new SortedList<string, string>();
-            foreach (var pair in parameters)
-            {
-                sorted.Add(pair.Key, pair.Value);
-            }
-            */ // *
-            
             var sb = new StringBuilder();
             foreach (var pair in parameters.OrderBy(p => p.Key))
             {
@@ -250,14 +239,9 @@ namespace PhoneClassLibrary1
                 sb.Append(UtilityMethods.EscapeOAuthString(pair.Value));
                 sb.Append("&");
             }
-
             sb.Remove(sb.Length - 1, 1);
-
-            var baseString = method + "&" + UtilityMethods.EscapeOAuthString(url) + "&" +
-                                UtilityMethods.EscapeOAuthString(sb.ToString());
-
+            var baseString = method + "&" + UtilityMethods.EscapeOAuthString(url) + "&" + UtilityMethods.EscapeOAuthString(sb.ToString());
             var hash = Sha1Hash(keyBytes, baseString);
-
             return hash;
         }
 
@@ -272,7 +256,6 @@ namespace PhoneClassLibrary1
 
         internal static partial class FlickrResponder
         {
-
             public static void OAuthGetBasicParameters(IDictionary<string, string> parameters)
             {
                 var oAuthParameters = OAuthGetBasicParameters();
@@ -303,7 +286,6 @@ namespace PhoneClassLibrary1
             }
 
             public static FileStream CreateUploadData(Stream imageStream, string filename, IDictionary<string, string> parameters, string boundary)
-            //public static byte[] CreateUploadData(Stream imageStream, string filename, IDictionary<string, string> parameters, string boundary)
             {
                 var body = new MimeBody
                 {
@@ -323,97 +305,55 @@ namespace PhoneClassLibrary1
                 body.MimeParts.Add(binaryPart);
 
                 var stream = new FileStream(Path.GetTempFileName(), FileMode.Create);
-                //using (var stream = new MemoryStream())
-                //{
-                    body.WriteTo(stream);
-                    stream.Position = 0;
-                    return stream; // .ToArray();
-                    //return stream.ToArray();
-                //}
+                body.WriteTo(stream);
+                stream.Position = 0;
+                return stream;
             }
 
             public static string OAuthCalculateAuthHeader(IDictionary<string, string> parameters)
             {
-                // Silverlight < 5 doesn't support modification of the Authorization header, so all data must be sent in post body.
-//#if SILVERLIGHT
-//                return "";
-//#else
-            var sb = new StringBuilder("OAuth ");
-            foreach (var pair in parameters)
-            {
-                if (pair.Key.StartsWith("oauth"))
+                var sb = new StringBuilder("OAuth ");
+                foreach (var pair in parameters)
                 {
-                    sb.Append(pair.Key + "=\"" + Uri.EscapeDataString(pair.Value) + "\",");
+                    if (pair.Key.StartsWith("oauth"))
+                    {
+                        sb.Append(pair.Key + "=\"" + Uri.EscapeDataString(pair.Value) + "\",");
+                    }
                 }
-            }
-            return sb.Remove(sb.Length - 1, 1).ToString();
-//#endif
+                return sb.Remove(sb.Length - 1, 1).ToString();
             }
 
 
             internal static async Task<string> UploadDataHttpWebRequestAsync(string url, Stream dataBuffer, string contentTypeHeader, string authHeader)
-            //internal static async Task<string> UploadDataAsync(Stream imageStream, string fileName, Uri uploadUri, Dictionary<string, string> parameters)
             {
-                /*
-                var boundary = "FLICKR_MIME_" + DateTime.Now.ToString("yyyyMMddhhmmss", System.Globalization.DateTimeFormatInfo.InvariantInfo);
-
-                var authHeader = FlickrResponder.OAuthCalculateAuthHeader(parameters);
-                var dataBuffer = CreateUploadData(imageStream, fileName, parameters, boundary);
-                */
-
                 var req = (HttpWebRequest)WebRequest.Create(url);
                 req.Method = "POST";
-                //if (Proxy != null) 
-                  //  req.Proxy = Proxy;
-                //req.Timeout = HttpTimeout;                
-                //req.ContentType = "multipart/form-data; boundary=" + boundary;
                 req.ContentType = contentTypeHeader;
                 req.AllowWriteStreamBuffering = false;
-
-                if (!string.IsNullOrEmpty(authHeader))
-                {
-                    req.Headers["Authorization"] = authHeader;
-                }
-
                 req.ContentLength = dataBuffer.Length;
 
+                if (!string.IsNullOrEmpty(authHeader))
+                    req.Headers["Authorization"] = authHeader;
+
                 using (var reqStream = await req.GetRequestStreamAsync())
-                //using (var reqStream = req.GetRequestStream())
                 {
                     var bufferSize = 32 * 1024;
                     if (dataBuffer.Length / 100 > bufferSize) 
                         bufferSize = bufferSize * 2;
-                    // dataBuffer.UploadProgress += (o, e) => { if (OnUploadProgress != null) OnUploadProgress(this, e); };
                     dataBuffer.CopyTo(reqStream, bufferSize);
                     reqStream.Flush();
                 }
 
-                //var res = (HttpWebResponse)req.GetResponse();
                 var res = (HttpWebResponse) await req.GetResponseAsync();
                 var stream = res.GetResponseStream();
-                if (stream == null) throw new FlickrWebException("Unable to retrieve stream from web response.");
+                if (stream == null) 
+                    throw new FlickrWebException("Unable to retrieve stream from web response.");
 
                 var sr = new StreamReader(stream);
                 var s = sr.ReadToEnd();
                 sr.Close();
                 return s;
             }
-
-            internal static async Task<string> UploadDataHttpClientAsync(string url, Stream data, string contentTypeHeader, string oauthHeader)
-            //internal static async Task<string> UploadDataAsync(string url, byte[] data, string contentTypeHeader, string oauthHeader)
-            {
-                var client = new HttpClient();
-
-                if (!String.IsNullOrEmpty(oauthHeader)) 
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("OAuth", oauthHeader.Replace("OAuth ", ""));
-
-                //var content = new ByteArrayContent(data);
-                //data.Position = 0;
-                var content = new StreamContent(data);
-                content.Headers.ContentType = MediaTypeHeaderValue.Parse(contentTypeHeader);
-                var response = await client.PostAsync(new Uri(url), content);
-                return await response.Content.ReadAsStringAsync();
-            }            
         }
 
         internal class MimeBody : MimePart
@@ -461,16 +401,10 @@ namespace PhoneClassLibrary1
             public string Name { get; set; }
             public string Filename { get; set; }
             public string ContentType { get; set; }
-            //public byte[] Content { get; private set; }
             public Stream Content { get; private set; }
 
             public void LoadContent(Stream stream)
             {
-                //Content = new byte[stream.Length];
-                //stream.Read(Content, 0, Content.Length);
-                //Content = new FileStream(Path.GetTempFileName(), FileMode.Create);
-                //stream.Position = 0;
-                //stream.CopyTo(Content);
                 Content = stream;
             }
 
@@ -482,7 +416,6 @@ namespace PhoneClassLibrary1
                 sw.WriteLine();
                 sw.Flush();
 
-                //stream.Write(Content, 0, Content.Length);
                 Content.Position = 0;
                 Content.CopyTo(stream);
 
@@ -490,7 +423,6 @@ namespace PhoneClassLibrary1
                 sw.Flush();
             }
         }
-// */
     }
 
 }
