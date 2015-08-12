@@ -96,8 +96,8 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FlickrNetPCL, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\GitHub\flickrnet-experimental\src\bin\Debug\FlickrNetPCL.dll</HintPath>
+      <HintPath>..\packages\FlickrNet.4.0.3-alpha\lib\portable-net45+sl5+wp8+win8\FlickrNetPCL.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Threading.Tasks, Version=1.0.12.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Bcl.Async.1.0.168\lib\wp8\Microsoft.Threading.Tasks.dll</HintPath>
