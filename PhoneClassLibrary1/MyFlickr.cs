@@ -42,13 +42,14 @@ namespace PhoneClassLibrary1
 
         public static async Task<bool> Test()
         {
+            lastError = null;
             if (!Settings.TokensSet())
                 return false;
             try
             {
                 Flickr f = getFlickr();
                 FoundUser testResult = await f.TestLoginAsync();
-                return (testResult != null); // && (!testResult.HasError);
+                return (testResult != null);
             }
             catch (Exception ex)
             {
