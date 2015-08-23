@@ -7,6 +7,7 @@ using System.Collections.Specialized;
 using System.IO;
 using System.IO.IsolatedStorage;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -79,8 +80,29 @@ namespace PhoneClassLibrary1
         private const string SECRET = "secret";
         public static string OAuthAccessTokenSecret
         {
-            get { return GetSetting(SECRET, ""); }
-            set { SetSetting(SECRET, value); }
+            get
+            {
+                try
+                {
+                    byte[] ProtectedSecretByte = GetSetting<byte[]>(SECRET, null);
+                    if (ProtectedSecretByte == null) // This means it's never been set
+                        return string.Empty;
+                    byte[] SecretByte = ProtectedData.Unprotect(ProtectedSecretByte, null);
+                    return Encoding.UTF8.GetString(SecretByte, 0, SecretByte.Length);
+                }
+                catch // Assume this exception means that we have a previously saved unprotected secret
+                {
+                    string s = GetSetting(SECRET, "");
+                    OAuthAccessTokenSecret = s; // Encrypt the secret
+                    return s;
+                }
+            }
+            set
+            {
+                byte[] SecretByte = Encoding.UTF8.GetBytes(value);
+                byte[] ProtectedSecretByte = ProtectedData.Protect(SecretByte, null);
+                SetSetting(SECRET, ProtectedSecretByte);
+            }
         }
 
         public static bool TokensSet()
