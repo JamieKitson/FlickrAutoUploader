@@ -72,6 +72,7 @@ namespace PhoneClassLibrary1
                 IList<string> checkedAlbums = Settings.SelectedPhoneAlbums;
                 Settings.DebugLog("Checked albums: " + string.Join(", ", checkedAlbums));
                 const string HIGHRES = "__highres";
+                const string UPLOADABLE_IMAGE_EXTS = ".jpg .png .gif .tiff";
 
                 // Cache setting values
                 DateTime StartFrom = Settings.StartFrom;
@@ -92,7 +93,7 @@ namespace PhoneClassLibrary1
                             {
                                 string ext = Path.GetExtension(file.Name).ToLower();
                                 // Get files more recent than the last uploaded, don't get DNG files, don't get videos unless we're uploading videos
-                                return (file.DateCreated > StartFrom) && (".jpg .png .gif .tiff".Contains(ext) || (ext == ".mp4" && UploadVideos));
+                                return (file.DateCreated > StartFrom) && (UPLOADABLE_IMAGE_EXTS.Contains(ext) || (ext == ".mp4" && UploadVideos));
                             })
                         .GroupBy(
                             // Group high/low res twins together. We need to group by name in case some photos are missing one of the hi/low res pair
