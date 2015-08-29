@@ -290,5 +290,18 @@ namespace PhoneClassLibrary1
             set { SetSetting(UPLOADS_FAILED, value); }
         }
 
+        private const string UPLOAD_VIDEOS = "uploadvideos";
+        public static bool UploadVideos
+        {
+            get { return GetSetting(UPLOAD_VIDEOS, true); }
+            set { SetSetting(UPLOAD_VIDEOS, value); }
+        }
+
+        private const string UPLOAD_HI_RES = "uploadhires";
+        public static bool UploadHiRes
+        {
+            get { return GetSetting(UPLOAD_HI_RES, true); }
+            set { SetSetting(UPLOAD_HI_RES, value); }
+        }
     }
 }

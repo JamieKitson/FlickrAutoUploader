@@ -68,16 +68,25 @@ namespace PhoneClassLibrary1
                 Flickr f = MyFlickr.getFlickr();
                 IList<string> checkedAlbums = Settings.SelectedPhoneAlbums;
 
+                // Cache setting values
+                DateTime StartFrom = Settings.StartFrom;
+                bool UploadVideos = Settings.UploadVideos;
+                bool UploadHiRes = Settings.UploadHiRes;
                 List<StorageFile> pics = new List<StorageFile>();
                 IReadOnlyList<StorageFolder> albums = await KnownFolders.PicturesLibrary.GetFoldersAsync();
                 foreach (StorageFolder album in albums.Where(folder => checkedAlbums.Contains(folder.Name)))
                 {
                     IReadOnlyList<StorageFile> files = await album.GetFilesAsync();
                     pics.AddRange(files
-                        .Where(file => file.DateCreated > Settings.StartFrom)
-                        .GroupBy(file => file.Name.Replace(HIGHRES, string.Empty))
+                        .Where(
+                            // Get files more recent than last run time, don't get videos unless we're uploading videos
+                            file => file.DateCreated > StartFrom && (Path.GetExtension(file.Name) != ".mp4" || UploadVideos))
+                        .GroupBy(
+                            // Group high/low res twins together
+                            file => file.Name.Replace(HIGHRES, string.Empty))
                         .Select(
-                            group => group.Where(file => file.Name.Contains(HIGHRES) || group.Count() == 1).ToList()[0]
+                            // If there's only one file always use that one, otherwise select correct resolution dending on setting
+                            group => group.Where(file => group.Count() == 1 || file.Name.Contains(HIGHRES) == UploadHiRes).ToList()[0]
                         ));
                 }
 

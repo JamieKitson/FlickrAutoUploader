@@ -71,16 +71,20 @@
                     <Slider Grid.Column="1" VerticalAlignment="Top" Maximum="2" SmallChange="1" ValueChanged="Slider_ValueChanged" Name="slLogLevel" Margin="0,10,0,-15" />
                     <TextBlock Grid.Column="2" HorizontalAlignment="Right" TextWrapping="Wrap" Text="Max" RenderTransformOrigin="1.493,0.671" VerticalAlignment="Top" Margin="0,25,0,0" Grid.ColumnSpan="2" Width="57"/>
                 </Grid>
+                <TextBlock Text="Upload:" Margin="0,0,0,10"/>
+                <CheckBox Content="Videos" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,-10,0,-10" Name="UploadVideos" Checked="UploadVideos_Checked" Unchecked="UploadVideos_Checked"/>
+                <CheckBox Content="High resolution images" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,-10,0,-10" Name="UploadHiRes" Checked="UploadHiRes_Checked" Unchecked="UploadHiRes_Checked"/>
                 <TextBlock Text="Upload from:" Margin="0,0,0,10"/>
                 <StackPanel Name="PhoneAlbumList">
-                    <CheckBox Content="Camera Roll" HorizontalAlignment="Left" VerticalAlignment="Top" IsChecked="True" Margin="0,0,0,-20"/>
-                    <CheckBox Content="Screenshots" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                    <CheckBox Content="Camera Roll" HorizontalAlignment="Left" VerticalAlignment="Top" IsChecked="True" Margin="0,-10,0,-10" />
+                    <CheckBox Content="Screenshots" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,-10,0,-10" />
                 </StackPanel>
                 <StackPanel Name="DebugPanel" Visibility="Collapsed">
                     <StackPanel Orientation="Horizontal">
                         <Button Content="Auth" HorizontalAlignment="Left" VerticalAlignment="Top" Click="Auth_Click" />
                         <Button Content="Upload" HorizontalAlignment="Left" VerticalAlignment="Top"  Click="Upload_Click"/>
                         <Button Content="Run" HorizontalAlignment="Left" VerticalAlignment="Top" Click="Run_Click"/>
+                        <Button Content="Go" Click="Go_Click" />
                     </StackPanel>
                     <TextBox HorizontalAlignment="Left" Height="72" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="456" x:Name="TextBox1"/>
                 </StackPanel>
