@@ -52,7 +52,7 @@ namespace FlickrAutoUploader
             if (Debugger.IsAttached)
                 DebugPanel.Visibility = Visibility.Visible;
             // Check for Lumia 1020 - RM-875, RM-876, RM-8777
-            UploadHiRes.Visibility = Regex.Match(DeviceStatus.DeviceName, "^RM-87[5-7]_").Success ? Visibility.Collapsed : Visibility.Visible;
+            UploadHiRes.Visibility = Regex.Match(DeviceStatus.DeviceName, "^RM-87[5-7]_").Success ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void PhoneApplicationPage_Loaded(object sender, RoutedEventArgs e)
