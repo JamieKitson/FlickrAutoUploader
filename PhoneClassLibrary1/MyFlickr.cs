@@ -60,13 +60,12 @@ namespace PhoneClassLibrary1
 
         public static async Task Upload()
         {
+            Settings.ClearLog();
             // Delete any lingering temporary files
             Directory.GetFiles(Path.GetDirectoryName(Path.GetTempFileName())).ToList().ForEach(f => {
                 try { File.Delete(f); }
                 catch { Settings.DebugLog("Failed to delete temporary file " + f); }
             });
-            Settings.ClearLog();
-            Photoset FlickrAlbum = Settings.FlickrAlbum;
             try
             {
                 Flickr f = MyFlickr.getFlickr();
@@ -78,6 +77,10 @@ namespace PhoneClassLibrary1
                 DateTime StartFrom = Settings.StartFrom;
                 bool UploadVideos = Settings.UploadVideos;
                 bool UploadHiRes = Settings.UploadHiRes;
+                Settings.DebugLog("Uploading videos: " + UploadVideos + ", uploading high res: " + UploadHiRes);
+                Photoset FlickrAlbum = Settings.FlickrAlbum;
+                Settings.DebugLog("Flickr album to upload to: " + (FlickrAlbum == null ? "null" : FlickrAlbum.Title + " " + FlickrAlbum.PhotosetId));
+
                 List<StorageFile> pics = new List<StorageFile>();
                 IReadOnlyList<StorageFolder> albums = await KnownFolders.PicturesLibrary.GetFoldersAsync();
                 foreach (StorageFolder album in albums.Where(folder => checkedAlbums.Contains(folder.Name)))
@@ -88,7 +91,7 @@ namespace PhoneClassLibrary1
                         .Where(file => 
                             {
                                 string ext = Path.GetExtension(file.Name).ToLower();
-                                // Get files more recent than last run time, don't get DNG files, don't get videos unless we're uploading videos
+                                // Get files more recent than the last uploaded, don't get DNG files, don't get videos unless we're uploading videos
                                 return (file.DateCreated > StartFrom) && (".jpg .png .gif .tiff".Contains(ext) || (ext == ".mp4" && UploadVideos));
                             })
                         .GroupBy(
@@ -132,11 +135,7 @@ namespace PhoneClassLibrary1
                         PhotoID = await UploadPictureAsync(stream, p.Name, p.Name, string.Empty, tags, isPublic, isFamily, isFriends, ct, SafetyLevel.Safe, HiddenFromSearch.Visible);
                         Settings.LogInfo("Uploaded: " + p.Name + " FlickrID: " + PhotoID);
                     }
-                    if (FlickrAlbum == null)
-                    {
-                        Settings.DebugLog("No Flickr album set, not adding to album.");
-                    }
-                    else
+                    if (FlickrAlbum != null)
                     {
                         Settings.DebugLog("Adding to Flickr album " + FlickrAlbum.Title);
                         try
