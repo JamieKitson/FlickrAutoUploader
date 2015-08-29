@@ -141,6 +141,7 @@
     </Content>
     <Content Include="Assets\Logo.png" />
     <Content Include="Assets\SplashScreen.png" />
+    <Content Include="Assets\StoreLogo.png" />
     <Content Include="Assets\Tiles\FlipCycleTileMedium.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
