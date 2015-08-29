@@ -437,10 +437,16 @@ namespace FlickrAutoUploader
         private void Go_Click(object sender, RoutedEventArgs e)
         {
             string s = Path.GetTempFileName();
-            MessageBox.Show(s);
+            //MessageBox.Show(s);
             string[] files = Directory.GetFiles(Path.GetDirectoryName(s));
-            MessageBox.Show(string.Join(", ", files));
-            IEnumerable<long> sizes = files.ToList().Select(f => { FileInfo fi = new FileInfo(f); return fi.Length; });
+            MessageBox.Show(string.Join(Environment.NewLine, files));
+            IEnumerable<long> sizes = files.ToList().Select(f => 
+            {
+                if (!File.Exists(f))
+                    return 0;
+                FileInfo fi = new FileInfo(f); 
+                return fi.Length; 
+            });
             MessageBox.Show(string.Join(", ", sizes));
         }
 
