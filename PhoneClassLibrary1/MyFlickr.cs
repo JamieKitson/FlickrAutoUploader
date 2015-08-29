@@ -150,8 +150,8 @@ namespace PhoneClassLibrary1
                         }
                     }
                     Settings.StartFrom = p.DateCreated.DateTime;
+                    Settings.UploadsFailed = 0;
                 }
-                Settings.UploadsFailed = 0;
             }
             catch (Exception ex)
             {
