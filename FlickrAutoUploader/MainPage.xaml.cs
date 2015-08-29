@@ -28,6 +28,7 @@ using Windows.Storage.Search;
 using Windows.Storage.FileProperties;
 using Microsoft.Phone.Info;
 using System.Text.RegularExpressions;
+using System.IO;
 
 namespace FlickrAutoUploader
 {
@@ -433,66 +434,14 @@ namespace FlickrAutoUploader
             FlickrAlbumList.Visibility = Visibility.Visible;
         }
 
-        private async void Go_Click(object sender, RoutedEventArgs e)
+        private void Go_Click(object sender, RoutedEventArgs e)
         {
-            DateTime start = DateTime.Now;
-
-            /*
-            var queryOptions = new Windows.Storage.Search.QueryOptions(CommonFileQuery.OrderByDate, null);
-            //queryOptions.SetThumbnailPrefetch(ThumbnailMode.PicturesView, 100, ThumbnailOptions.ReturnOnlyIfCached);
-            //queryOptions.SetPropertyPrefetch(PropertyPrefetchOptions.ImageProperties, new string[] { "System.Size" });
-
-            StorageFileQueryResult queryResults = KnownFolders.PicturesLibrary.CreateFileQueryWithOptions(queryOptions);
-            IReadOnlyList<StorageFile> files = await queryResults.GetFilesAsync();
-
-            /*/
-            IReadOnlyList<StorageFolder> albums = await KnownFolders.PicturesLibrary.GetFoldersAsync();
-            StorageFolder album = albums.Where(folder => folder.Name == "Camera Roll").First();
-            IReadOnlyList<StorageFile> files = await album.GetFilesAsync();
-            //*/
-
-            int c = files.Count(); // Where(file => file.DateCreated > Convert.ToDateTime("16/08/2015")).Count();
-
-            /*
-            const string HIGHRES = "__highres";
-            IList<string> checkedAlbums = Settings.SelectedPhoneAlbums;
-
-            List<StorageFile> pics = new List<StorageFile>();
-            IReadOnlyList<StorageFolder> albums = await KnownFolders.PicturesLibrary.GetFoldersAsync();
-            foreach (StorageFolder album in albums.Where(folder => checkedAlbums.Contains(folder.Name)))
-            {
-                IReadOnlyList<StorageFile> files = await album.GetFilesAsync();
-                pics.AddRange(files
-                    .Where(file => file.DateCreated > Settings.StartFrom)
-                    .GroupBy(file => file.Name.Replace(HIGHRES, string.Empty))
-                    .Select(
-                        group => group.Where(file => file.Name.Contains(HIGHRES) || group.Count() == 1).ToList()[0]
-                    ));
-            }
-            */
-
-            MessageBox.Show((DateTime.Now - start).TotalMilliseconds.ToString());
-            start = DateTime.Now;
-
-            var sources = MediaSource.GetAvailableMediaSources().Where(s => s.MediaSourceType == MediaSourceType.LocalDevice);
-            MediaLibrary medLib = new MediaLibrary(sources.First());
-            PictureAlbum picalbum = medLib.RootPictureAlbum.Albums.Where(a => a.Name == "Camera Roll").First();
-            c = picalbum.Pictures.Where(p => p.Date > Convert.ToDateTime("16/08/2015")).Count();
-
-            /*
-            // Apparently even without the where clause GetAvailableMediaSources will only ever return a single media source on Windows Phone
-            var sources = MediaSource.GetAvailableMediaSources().Where(s => s.MediaSourceType == MediaSourceType.LocalDevice);
-            if (sources.Count() != 1)
-                throw new Exception(sources.Count() + " media sources found.");
-            MediaLibrary medLib = new MediaLibrary(sources.First());
-            IEnumerable<Picture> pics1 = medLib.RootPictureAlbum.Albums
-                .Where(a => checkedAlbums.Contains(a.Name)) // Get selected albums
-                .SelectMany(a => a.Pictures)                // Get all pictures from selected albums
-                .Where(p => p.Date > Settings.StartFrom)    // Only pictures more recent than the last upload
-                .OrderBy(p => p.Date);                      // Order by date taken so that we upload the oldest first
-            */
-            MessageBox.Show((DateTime.Now - start).TotalMilliseconds.ToString());
-
+            string s = Path.GetTempFileName();
+            MessageBox.Show(s);
+            string[] files = Directory.GetFiles(Path.GetDirectoryName(s));
+            MessageBox.Show(string.Join(", ", files));
+            IEnumerable<long> sizes = files.ToList().Select(f => { FileInfo fi = new FileInfo(f); return fi.Length; });
+            MessageBox.Show(string.Join(", ", sizes));
         }
 
         private void UploadVideos_Checked(object sender, RoutedEventArgs e)

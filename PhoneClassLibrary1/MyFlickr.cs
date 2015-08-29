@@ -61,6 +61,11 @@ namespace PhoneClassLibrary1
         const string HIGHRES = "__highres";
         public static async Task Upload()
         {
+            // Delete any lingering temporary files
+            Directory.GetFiles(Path.GetDirectoryName(Path.GetTempFileName())).ToList().ForEach(f => {
+                try { File.Delete(f); }
+                catch { Settings.DebugLog("Failed to delete temporary file " + f); }
+            });
             Settings.ClearLog();
             Photoset FlickrAlbum = Settings.FlickrAlbum;
             try
