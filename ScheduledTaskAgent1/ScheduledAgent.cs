@@ -1,11 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Windows;
 using Microsoft.Phone.Scheduler;
-using Microsoft.Phone.Shell;
-using System;
-//using FlickrNet;
-using System.IO.IsolatedStorage;
-using PhoneClassLibrary1;
 
 namespace ScheduledTaskAgent1
 {
@@ -42,41 +37,11 @@ namespace ScheduledTaskAgent1
         /// <remarks>
         /// This method is called when a periodic or resource intensive task is invoked
         /// </remarks>
-        protected override async void OnInvoke(ScheduledTask task)
+        protected override void OnInvoke(ScheduledTask task)
         {
-            Settings.DebugLog("Schedule started, Enabled: " + Settings.Enabled);
+            //TODO: Add code to perform your task in background
 
-            if (Settings.Enabled)
-            {
-                if (await MyFlickr.Test())
-                {
-                    Settings.TestsFailed = 0;
-                    Settings.DebugLog("Test succeeded, starting upload.");
-                    await MyFlickr.Upload();
-                }
-                else
-                {
-                    if (Settings.TestsFailed++ > 5)
-                    {
-                        Settings.Enabled = false;
-                        Settings.TestsFailed = 0;
-                        Settings.ErrorLog("Flickr login failed, please re-enable app to re-authenticate with Flickr.");
-                    }
-                    else
-                    {
-                        string err = "Returned null";
-                        if (MyFlickr.lastError != null)
-                        {
-                            err = MyFlickr.lastError.Message;
-                        }
-                        Settings.DebugLog("Not uploading, test failed " + Settings.TestsFailed + " times. " + err);
-                    }
-                }
-            }
             NotifyComplete();
         }
-
-
-
     }
 }

@@ -3,25 +3,25 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Navigation;
-using Microsoft.Phone.Controls;
-using Microsoft.Phone.Shell;
-using FlickrAutoUploader.Resources;
+//using System.Windows.Controls;
+//using System.Windows.Navigation;
+//using Microsoft.Phone.Controls;
+//using Microsoft.Phone.Shell;
+//using FlickrAutoUploader.Resources;
 using FlickrNet;
-using System.IO.IsolatedStorage;
-using Microsoft.Xna.Framework.Media;
-using Microsoft.Phone.Scheduler;
+//using System.IO.IsolatedStorage;
+//using Microsoft.Xna.Framework.Media;
+//using Microsoft.Phone.Scheduler;
 using PhoneClassLibrary1;
-using System.Security.Cryptography;
+//using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Collections.ObjectModel;
-using System.Windows.Media;
+//using System.Windows.Media;
 using System.Net.NetworkInformation;
-using Microsoft.Phone.Tasks;
+//using Microsoft.Phone.Tasks;
 using System.Diagnostics;
-using Microsoft.Phone.Globalization;
+//using Microsoft.Phone.Globalization;
 using System.Globalization;
 using Windows.Storage;
 using Windows.Storage.Search;
@@ -29,10 +29,15 @@ using Windows.Storage.FileProperties;
 using Microsoft.Phone.Info;
 using System.Text.RegularExpressions;
 using System.IO;
+using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml;
+using Windows.Security.ExchangeActiveSyncProvisioning;
+using Windows.UI.Xaml.Media;
+using Windows.UI;
 
 namespace FlickrAutoUploader
 {
-    public partial class MainPage : PhoneApplicationPage
+    public partial class MainPage : Page
     {
         const string CALL_BACK = "http://kitten-x.com";
         const string RIT_NAME = "FlickrAutoUploader";
@@ -44,15 +49,16 @@ namespace FlickrAutoUploader
             InitializeComponent();
             LoadPhoneAlbums();
             PopulatePrivacy();
-            FixPrivacyItmemsBackground();
-            dpUploadFrom.Value = Settings.StartFrom;
-            dpUploadFrom.ValueChanged += dpUploadFrom_ValueChanged;
+            FixPrivacyItmemsBackground();            
+            dpUploadFrom.Date = Settings.StartFrom;
+            dpUploadFrom.DateChanged += dpUploadFrom_ValueChanged;
             tbTags.Text = Settings.Tags;
             slLogLevel.Value = Settings.LogLevel;
             if (Debugger.IsAttached)
                 DebugPanel.Visibility = Visibility.Visible;
+            EasClientDeviceInformation DeviceInformation = new EasClientDeviceInformation();
             // Check for Lumia 1020 - RM-875, RM-876, RM-8777
-            UploadHiRes.Visibility = Regex.Match(DeviceStatus.DeviceName, "^RM-87[5-7]_").Success ? Visibility.Visible : Visibility.Collapsed;
+            UploadHiRes.Visibility = Regex.Match(DeviceInformation.SystemProductName, "^RM-87[5-7]_").Success ? Visibility.Visible : Visibility.Collapsed;
             SetToggleCheck();
             Photoset fa = Settings.FlickrAlbum;
             if (fa != null)
@@ -64,12 +70,12 @@ namespace FlickrAutoUploader
         private void PopulatePrivacy()
         {
             PrivacyPicker.Items.Clear();
-            Enum.GetValues(typeof(Settings.ePrivacy)).Cast<Settings.ePrivacy>().ToList().ForEach(v =>
+            foreach(Settings.ePrivacy v in Enum.GetValues(typeof(Settings.ePrivacy)))
             {
-                ListPickerItem lpi = new ListPickerItem();
+                ComboBoxItem lpi = new ComboBoxItem();
                 lpi.Content = v.ToString().Replace("FriendsFamily", "Friends & Family");
                 PrivacyPicker.Items.Add(lpi);
-            });
+            }
             PrivacyPicker.SelectedIndex = (int)Settings.Privacy;
             PrivacyPicker.SelectionChanged += PrivacyPicker_SelectionChanged;
         }
@@ -81,7 +87,8 @@ namespace FlickrAutoUploader
                 // Fix transparent ListPicker background in light theme
                 SolidColorBrush bg = (SolidColorBrush)Application.Current.Resources["PhoneBackgroundBrush"];
                 if (bg.Color == Colors.White)
-                    PrivacyPicker.Items.ToList().ForEach(i => ((ListPickerItem)i).Background = bg);
+                    foreach (ComboBoxItem i in PrivacyPicker.Items)
+                        i.Background = bg;
             }
             catch { } // Don't really care if it fails
         }
@@ -89,14 +96,14 @@ namespace FlickrAutoUploader
         private async void SetToggleCheck()
         {
             if (Settings.Enabled && (ScheduledActionService.Find(RIT_NAME) != null))
-                tgEnabled.IsChecked = true;
-            tgEnabled.Checked += tgEnabled_Checked;
+                tgEnabled.IsOn = true;
+            tgEnabled.Toggled += tgEnabled_Checked;
             if (NetworkInterface.GetIsNetworkAvailable() && Settings.TokensSet())
             {
                 if (await MyFlickr.Test())
                     LoadFlickrAlbums();
                 else
-                    tgEnabled.IsChecked = false;
+                    tgEnabled.IsOn = false;
             }
         }
 
@@ -252,9 +259,9 @@ namespace FlickrAutoUploader
             Settings.Enabled = false;
         }
 
-        private void dpUploadFrom_ValueChanged(object sender, DateTimeValueChangedEventArgs e)
+        private void dpUploadFrom_ValueChanged(object sender, DatePickerValueChangedEventArgs e)
         {
-            Settings.StartFrom = (DateTime)dpUploadFrom.Value.Value.Date;
+            Settings.StartFrom = (DateTime)dpUploadFrom.Date.Date;
         }
 
         protected override void OnBackKeyPress(System.ComponentModel.CancelEventArgs e)
