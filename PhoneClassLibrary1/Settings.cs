@@ -18,8 +18,13 @@ namespace PhoneClassLibrary1
     public class Settings
     {
 
+        private static Dictionary<string, object> cache = new Dictionary<string, object>();
+
         private static T GetSetting<T>(string name, T defVal)
         {
+            if (cache.ContainsKey(name))
+                return (T)cache[name];
+            T val = defVal;
             Mutex mutexFile = new Mutex(false, name);
             mutexFile.WaitOne();
             try
@@ -30,7 +35,7 @@ namespace PhoneClassLibrary1
                     {
                         XmlSerializer x = new XmlSerializer(typeof(T));
                         using (var file = store.OpenFile(name, FileMode.Open))
-                            return (T)x.Deserialize(file);
+                            val = (T)x.Deserialize(file);
                     }
                 }
             }
@@ -38,7 +43,8 @@ namespace PhoneClassLibrary1
             {
                 mutexFile.ReleaseMutex();
             }
-            return defVal;
+            cache[name] = val;
+            return val;
         }
 
         private static void SetSetting<T>(string name, T val)
@@ -61,6 +67,7 @@ namespace PhoneClassLibrary1
             {
                 mutexFile.ReleaseMutex();
             }
+            cache[name] = val;
         }
 
         private static IList<string> GetSettingList(string name, string defVal)
