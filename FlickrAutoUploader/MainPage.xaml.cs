@@ -35,7 +35,6 @@ namespace FlickrAutoUploader
     public partial class MainPage : PhoneApplicationPage
     {
         const string CALL_BACK = "http://kitten-x.com";
-        const string RIT_NAME = "FlickrAutoUploader";
         OAuthRequestToken requestToken;
         int AuthAttempts;
 
@@ -88,8 +87,17 @@ namespace FlickrAutoUploader
 
         private async void SetToggleCheck()
         {
-            if (Settings.Enabled && (ScheduledActionService.Find(RIT_NAME) != null))
-                tgEnabled.IsChecked = true;
+            ScheduledAction task = ScheduledActionService.Find(MyFlickr.RIT_NAME);
+            if (task != null)
+            {
+                if (task.IsScheduled)
+                    tgEnabled.IsChecked = true;
+                else
+                {
+                    Settings.DebugLog("Schedule was disabled.");
+                    RemoveSchedule();
+                }
+            }
             tgEnabled.Checked += tgEnabled_Checked;
             if (NetworkInterface.GetIsNetworkAvailable() && Settings.TokensSet())
             {
@@ -188,17 +196,17 @@ namespace FlickrAutoUploader
         private void AddScheduledTask()
         {
             RemoveSchedule();
-            ResourceIntensiveTask resourceIntensiveTask = new ResourceIntensiveTask(RIT_NAME);
+            ResourceIntensiveTask resourceIntensiveTask = new ResourceIntensiveTask(MyFlickr.RIT_NAME);
             resourceIntensiveTask.Description = "Flickr Auto Uploader";
             ScheduledActionService.Add(resourceIntensiveTask);
-            Settings.Enabled = true;
         }
 
         private async void tgEnabled_Checked(object sender, RoutedEventArgs e)
         {
-            if (ScheduledActionService.Find(RIT_NAME) != null)
+            ScheduledAction task = ScheduledActionService.Find(MyFlickr.RIT_NAME);
+            if ((task != null) && (task.IsScheduled))
             {
-                Settings.Enabled = true;
+                // Already enabled, nothing to do
             }
             else if (!NetworkInterface.GetIsNetworkAvailable())
             {
@@ -239,17 +247,15 @@ namespace FlickrAutoUploader
 
         private void RemoveSchedule()
         {
-            if (ScheduledActionService.Find(RIT_NAME) != null)
+            if (ScheduledActionService.Find(MyFlickr.RIT_NAME) != null)
             {
-                ScheduledActionService.Remove(RIT_NAME);
+                ScheduledActionService.Remove(MyFlickr.RIT_NAME);
             }
         }
 
         private void tgEnabled_Unchecked(object sender, RoutedEventArgs e)
         {
-            //MessageBox.Show("unchecked");
             RemoveSchedule();
-            Settings.Enabled = false;
         }
 
         private void dpUploadFrom_ValueChanged(object sender, DateTimeValueChangedEventArgs e)
@@ -271,7 +277,7 @@ namespace FlickrAutoUploader
         private void Run_Click(object sender, RoutedEventArgs e)
         {
             if (Debugger.IsAttached)
-                ScheduledActionService.LaunchForTest(RIT_NAME, TimeSpan.FromMilliseconds(5000));
+                ScheduledActionService.LaunchForTest(MyFlickr.RIT_NAME, TimeSpan.FromMilliseconds(5000));
         }
 
         private void PrivacyPicker_SelectionChanged(object sender, SelectionChangedEventArgs e)

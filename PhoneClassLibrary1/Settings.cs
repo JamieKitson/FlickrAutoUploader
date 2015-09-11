@@ -130,13 +130,6 @@ namespace PhoneClassLibrary1
             set { SetSetting(START_FROM, value); }
         }
 
-        private const string ENABLED = "enabled";
-        public static bool Enabled
-        {
-            get { return GetSetting(ENABLED, false); }
-            set { SetSetting(ENABLED, value); }
-        }
-
         private static void DoLog(string msg, int level)
         {
             LogLine(DateTime.Now.ToString("s") + " " + level + " " + msg);

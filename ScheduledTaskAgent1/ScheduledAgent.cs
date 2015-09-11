@@ -44,39 +44,49 @@ namespace ScheduledTaskAgent1
         /// </remarks>
         protected override async void OnInvoke(ScheduledTask task)
         {
-            Settings.DebugLog("Schedule started, Enabled: " + Settings.Enabled);
-
-            if (Settings.Enabled)
+            if ((DateTime.Now - Settings.LastSuccessfulRun) < new TimeSpan(1, 0, 0))
             {
-                if ((DateTime.Now - Settings.LastSuccessfulRun) < new TimeSpan(1, 0, 0))
+                Settings.DebugLog("Already run in the last hour (at " + Settings.LastSuccessfulRun + "), not running.");
+            }
+            else if (await MyFlickr.Test())
+            {
+                Settings.TestsFailed = 0;
+                Settings.DebugLog("Test succeeded, starting upload.");
+                try
                 {
-                    Settings.DebugLog("Already run in the last hour (at " + Settings.LastSuccessfulRun + "), not running.");
-                }
-                else if (await MyFlickr.Test())
-                {
-                    Settings.TestsFailed = 0;
-                    Settings.DebugLog("Test succeeded, starting upload.");
                     await MyFlickr.Upload();
                     Settings.DebugLog("Finished!");
                     Settings.LastSuccessfulRun = DateTime.Now;
                 }
-                else
+                catch (Exception ex)
                 {
-                    if (Settings.TestsFailed++ > 5)
+                    string msg = "Error uploading: " + ex.Message;
+                    if (Settings.UploadsFailed++ > 5)
                     {
-                        Settings.Enabled = false;
-                        Settings.TestsFailed = 0;
-                        Settings.ErrorLog("Flickr login failed, please re-enable app to re-authenticate with Flickr.");
+                        Settings.ErrorLog(msg);
+                        Settings.UploadsFailed = 0;
+                        Abort();
                     }
                     else
+                        Settings.DebugLog(msg);
+                }
+            }
+            else
+            {
+                if (Settings.TestsFailed++ > 5)
+                {
+                    Settings.TestsFailed = 0;
+                    Settings.ErrorLog("Flickr login failed, please re-enable app to re-authenticate with Flickr.");
+                    Abort();
+                }
+                else
+                {
+                    string err = "Returned null";
+                    if (MyFlickr.lastError != null)
                     {
-                        string err = "Returned null";
-                        if (MyFlickr.lastError != null)
-                        {
-                            err = MyFlickr.lastError.Message;
-                        }
-                        Settings.DebugLog("Not uploading, test failed " + Settings.TestsFailed + " times. " + err);
+                        err = MyFlickr.lastError.Message;
                     }
+                    Settings.DebugLog("Not uploading, test failed " + Settings.TestsFailed + " times. " + err);
                 }
             }
             NotifyComplete();

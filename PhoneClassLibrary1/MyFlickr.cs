@@ -24,11 +24,14 @@ using System.Text;
 using System.Globalization;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using Microsoft.Phone;
 
 namespace PhoneClassLibrary1
 {
     public class MyFlickr
     {
+
+        public const string RIT_NAME = "FlickrAutoUploader";
 
         public static Flickr getFlickr()
         {
@@ -62,107 +65,95 @@ namespace PhoneClassLibrary1
         {
             Settings.ClearLog();
             // Delete any lingering temporary files
-            Directory.GetFiles(Path.GetDirectoryName(Path.GetTempFileName())).ToList().ForEach(f => {
-                try { File.Delete(f); }
-                catch { Settings.DebugLog("Failed to delete temporary file " + f); }
+            Directory.GetFiles(Path.GetDirectoryName(Path.GetTempFileName())).ToList().ForEach(file =>
+            {
+                try { File.Delete(file); }
+                catch { Settings.DebugLog("Failed to delete temporary file " + file); }
             });
-            try
+
+            Flickr f = MyFlickr.getFlickr();
+            IList<string> checkedAlbums = Settings.SelectedPhoneAlbums;
+            Settings.DebugLog("Checked albums: " + string.Join(", ", checkedAlbums));
+            const string HIGHRES = "__highres";
+            const string UPLOADABLE_IMAGE_EXTS = ".jpg .png .gif .tiff";
+
+            // Cache setting values
+            DateTime StartFrom = Settings.StartFrom;
+            bool UploadVideos = Settings.UploadVideos;
+            bool UploadHiRes = Settings.UploadHiRes;
+            Settings.DebugLog("Uploading videos: " + UploadVideos + ", uploading high res: " + UploadHiRes);
+            Photoset FlickrAlbum = Settings.FlickrAlbum;
+            Settings.DebugLog("Flickr album to upload to: " + (FlickrAlbum == null ? "null" : FlickrAlbum.Title + " " + FlickrAlbum.PhotosetId));
+
+            List<StorageFile> pics = new List<StorageFile>();
+            IReadOnlyList<StorageFolder> albums = await KnownFolders.PicturesLibrary.GetFoldersAsync();
+            foreach (StorageFolder album in albums.Where(folder => checkedAlbums.Contains(folder.Name)))
             {
-                Flickr f = MyFlickr.getFlickr();
-                IList<string> checkedAlbums = Settings.SelectedPhoneAlbums;
-                Settings.DebugLog("Checked albums: " + string.Join(", ", checkedAlbums));
-                const string HIGHRES = "__highres";
-                const string UPLOADABLE_IMAGE_EXTS = ".jpg .png .gif .tiff";
-
-                // Cache setting values
-                DateTime StartFrom = Settings.StartFrom;
-                bool UploadVideos = Settings.UploadVideos;
-                bool UploadHiRes = Settings.UploadHiRes;
-                Settings.DebugLog("Uploading videos: " + UploadVideos + ", uploading high res: " + UploadHiRes);
-                Photoset FlickrAlbum = Settings.FlickrAlbum;
-                Settings.DebugLog("Flickr album to upload to: " + (FlickrAlbum == null ? "null" : FlickrAlbum.Title + " " + FlickrAlbum.PhotosetId));
-
-                List<StorageFile> pics = new List<StorageFile>();
-                IReadOnlyList<StorageFolder> albums = await KnownFolders.PicturesLibrary.GetFoldersAsync();
-                foreach (StorageFolder album in albums.Where(folder => checkedAlbums.Contains(folder.Name)))
-                {
-                    Settings.DebugLog("Found album: " + album.Name);
-                    IReadOnlyList<StorageFile> files = await album.GetFilesAsync();
-                    pics.AddRange(files
-                        .Where(file => 
-                            {
-                                string ext = Path.GetExtension(file.Name).ToLower();
-                                // Get files more recent than the last uploaded, don't get DNG files, don't get videos unless we're uploading videos
-                                return (file.DateCreated > StartFrom) && (UPLOADABLE_IMAGE_EXTS.Contains(ext) || (ext == ".mp4" && UploadVideos));
-                            })
-                        .GroupBy(
-                            // Group high/low res twins together. We need to group by name in case some photos are missing one of the hi/low res pair
-                            file => file.Name.Replace(HIGHRES, string.Empty))
-                        .Select(
-                            // If there's only one file always use that one, otherwise select correct resolution dending on setting
-                            group => group.Where(file => (group.Count() == 1) || (file.Name.Contains(HIGHRES) == UploadHiRes)).ToList()[0]
-                        ));
-                }
-
-                Settings.DebugLog(pics.Count() + " pics taken since " + Settings.StartFrom);
-                foreach (StorageFile p in pics.OrderBy(file => file.DateCreated))
-                {
-                    Settings.DebugLog("Found picture " + p.Name);
-                    Stream stream = await p.OpenStreamForReadAsync();
-                    // MD5Managed hash = new MD5Managed();
-                    SHA1Managed hash = new SHA1Managed();
-                    hash.ComputeHash(stream);
-                    // string hashTag = "file:md5sum=" + 
-                    string hashTag = "file:sha1sig=" + BitConverter.ToString(hash.Hash).Replace("-", string.Empty);
-                    string filenameTag = "file:name=" + p.Name;
-                    PhotoSearchOptions so = new PhotoSearchOptions("me", hashTag);
-                    PhotoCollection searchResult = await f.PhotosSearchAsync(so);
-                    string PhotoID;
-                    if (searchResult.Count > 0)
-                    {
-                        PhotoID = searchResult[0].PhotoId;
-                        Settings.DebugLog("Already uploaded, skipping. PhotoID: " + PhotoID);
-                    }
-                    else
-                    {
-                        Settings.DebugLog("Uploading...");
-                        bool isPublic = Settings.Privacy == Settings.ePrivacy.Public;
-                        bool isFriends = (Settings.Privacy & Settings.ePrivacy.Friends) > 0;
-                        bool isFamily = (Settings.Privacy & Settings.ePrivacy.Family) > 0;
-                        string album = Path.GetFileName(Path.GetDirectoryName(p.Path));
-                        string tags = string.Join(", ", new string[] { filenameTag, hashTag, Settings.Tags, "\"" + album + "\"" });
-                        ContentType ct = album == "Screenshots" ? ContentType.Screenshot : ContentType.Photo;
-                        stream.Seek(0, 0);
-                        PhotoID = await UploadPictureAsync(stream, p.Name, p.Name, string.Empty, tags, isPublic, isFamily, isFriends, ct, SafetyLevel.Safe, HiddenFromSearch.Visible);
-                        Settings.LogInfo("Uploaded: " + p.Name + " FlickrID: " + PhotoID);
-                    }
-                    if (FlickrAlbum != null)
-                    {
-                        Settings.DebugLog("Adding to Flickr album " + FlickrAlbum.Title);
-                        try
+                Settings.DebugLog("Found album: " + album.Name);
+                IReadOnlyList<StorageFile> files = await album.GetFilesAsync();
+                pics.AddRange(files
+                    .Where(file =>
                         {
-                            await f.PhotosetsAddPhotoAsync(FlickrAlbum.PhotosetId, PhotoID);
-                        }
-                        catch (FlickrApiException ex)
-                        {
-                            if (ex.Code != 3) // Photo already in set
-                                throw;
-                        }
-                    }
-                    Settings.StartFrom = p.DateCreated.DateTime;
-                    Settings.UploadsFailed = 0;
-                }
+                            string ext = Path.GetExtension(file.Name).ToLower();
+                            // Get files more recent than the last uploaded, don't get DNG files, don't get videos unless we're uploading videos
+                            return (file.DateCreated > StartFrom) && (UPLOADABLE_IMAGE_EXTS.Contains(ext) || (ext == ".mp4" && UploadVideos));
+                        })
+                    .GroupBy(
+                    // Group high/low res twins together. We need to group by name in case some photos are missing one of the hi/low res pair
+                        file => file.Name.Replace(HIGHRES, string.Empty))
+                    .Select(
+                    // If there's only one file always use that one, otherwise select correct resolution dending on setting
+                        group => group.Where(file => (group.Count() == 1) || (file.Name.Contains(HIGHRES) == UploadHiRes)).ToList()[0]
+                    ));
             }
-            catch (Exception ex)
+
+            Settings.DebugLog(pics.Count() + " pics taken since " + Settings.StartFrom);
+            foreach (StorageFile p in pics.OrderBy(file => file.DateCreated))
             {
-                if (Settings.UploadsFailed++ > 5)
+                Settings.DebugLog("Found picture " + p.Name);
+                Stream stream = await p.OpenStreamForReadAsync();
+                // MD5Managed hash = new MD5Managed();
+                SHA1Managed hash = new SHA1Managed();
+                hash.ComputeHash(stream);
+                // string hashTag = "file:md5sum=" + 
+                string hashTag = "file:sha1sig=" + BitConverter.ToString(hash.Hash).Replace("-", string.Empty);
+                string filenameTag = "file:name=" + p.Name;
+                PhotoSearchOptions so = new PhotoSearchOptions("me", hashTag);
+                PhotoCollection searchResult = await f.PhotosSearchAsync(so);
+                string PhotoID;
+                if (searchResult.Count > 0)
                 {
-                    Settings.UploadsFailed = 0;
-                    Settings.Enabled = false;
-                    Settings.ErrorLog("Error uploading: " + ex.Message);
+                    PhotoID = searchResult[0].PhotoId;
+                    Settings.DebugLog("Already uploaded, skipping. PhotoID: " + PhotoID);
                 }
                 else
-                    Settings.DebugLog("Error uploading: " + ex.Message);
+                {
+                    Settings.DebugLog("Uploading...");
+                    bool isPublic = Settings.Privacy == Settings.ePrivacy.Public;
+                    bool isFriends = (Settings.Privacy & Settings.ePrivacy.Friends) > 0;
+                    bool isFamily = (Settings.Privacy & Settings.ePrivacy.Family) > 0;
+                    string album = Path.GetFileName(Path.GetDirectoryName(p.Path));
+                    string tags = string.Join(", ", new string[] { filenameTag, hashTag, Settings.Tags, "\"" + album + "\"" });
+                    ContentType ct = album == "Screenshots" ? ContentType.Screenshot : ContentType.Photo;
+                    stream.Seek(0, 0);
+                    PhotoID = await UploadPictureAsync(stream, p.Name, p.Name, string.Empty, tags, isPublic, isFamily, isFriends, ct, SafetyLevel.Safe, HiddenFromSearch.Visible);
+                    Settings.LogInfo("Uploaded: " + p.Name + " FlickrID: " + PhotoID);
+                }
+                if (FlickrAlbum != null)
+                {
+                    Settings.DebugLog("Adding to Flickr album " + FlickrAlbum.Title);
+                    try
+                    {
+                        await f.PhotosetsAddPhotoAsync(FlickrAlbum.PhotosetId, PhotoID);
+                    }
+                    catch (FlickrApiException ex)
+                    {
+                        if (ex.Code != 3) // Photo already in set
+                            throw;
+                    }
+                }
+                Settings.StartFrom = p.DateCreated.DateTime;
+                Settings.UploadsFailed = 0;
             }
         }
 
