@@ -6,6 +6,7 @@ using System;
 //using FlickrNet;
 using System.IO.IsolatedStorage;
 using PhoneClassLibrary1;
+using Windows.ApplicationModel;
 
 namespace ScheduledTaskAgent1
 {
@@ -44,14 +45,15 @@ namespace ScheduledTaskAgent1
         /// </remarks>
         protected override async void OnInvoke(ScheduledTask task)
         {
-            if ((DateTime.Now - Settings.LastSuccessfulRun) < new TimeSpan(1, 0, 0))
+            if (!Debugger.IsAttached && ((DateTime.Now - Settings.LastSuccessfulRun) < new TimeSpan(1, 0, 0)))
             {
                 Settings.DebugLog("Already run in the last hour (at " + Settings.LastSuccessfulRun + "), not running.");
             }
             else if (await MyFlickr.Test())
             {
                 Settings.TestsFailed = 0;
-                Settings.DebugLog("Test succeeded, starting upload.");
+                PackageVersion v = Package.Current.Id.Version;
+                Settings.DebugLog("Test succeeded, starting upload. Version " + v.Major + "." + v.Minor);
                 try
                 {
                     await MyFlickr.Upload();
