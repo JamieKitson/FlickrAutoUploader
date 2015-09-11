@@ -303,5 +303,12 @@ namespace PhoneClassLibrary1
             get { return GetSetting(UPLOAD_HI_RES, true); }
             set { SetSetting(UPLOAD_HI_RES, value); }
         }
+
+        private const string LAST_SUCCESSFUL_RUN = "lastsuccessfulrun";
+        public static DateTime LastSuccessfulRun
+        {
+            get { return GetSetting(LAST_SUCCESSFUL_RUN, new DateTime(0)); }
+            set { SetSetting(LAST_SUCCESSFUL_RUN, value); }
+        }
     }
 }

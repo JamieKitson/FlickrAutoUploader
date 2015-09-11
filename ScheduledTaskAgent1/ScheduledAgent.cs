@@ -48,11 +48,17 @@ namespace ScheduledTaskAgent1
 
             if (Settings.Enabled)
             {
-                if (await MyFlickr.Test())
+                if ((DateTime.Now - Settings.LastSuccessfulRun) < new TimeSpan(1, 0, 0))
+                {
+                    Settings.DebugLog("Already run in the last hour (at " + Settings.LastSuccessfulRun + "), not running.");
+                }
+                else if (await MyFlickr.Test())
                 {
                     Settings.TestsFailed = 0;
                     Settings.DebugLog("Test succeeded, starting upload.");
                     await MyFlickr.Upload();
+                    Settings.DebugLog("Finished!");
+                    Settings.LastSuccessfulRun = DateTime.Now;
                 }
                 else
                 {
