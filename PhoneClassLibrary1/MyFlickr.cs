@@ -30,9 +30,6 @@ namespace PhoneClassLibrary1
 {
     public class MyFlickr
     {
-
-        public const string RIT_NAME = "FlickrAutoUploader";
-
         public static Flickr getFlickr()
         {
             Flickr f = new Flickr(Secrets.apiKey, Secrets.apiSecret);

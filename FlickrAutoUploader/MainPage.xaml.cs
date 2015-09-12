@@ -35,6 +35,7 @@ namespace FlickrAutoUploader
     public partial class MainPage : PhoneApplicationPage
     {
         const string CALL_BACK = "http://kitten-x.com";
+        const string RIT_NAME = "FlickrAutoUploader";
         OAuthRequestToken requestToken;
         int AuthAttempts;
 
@@ -87,7 +88,7 @@ namespace FlickrAutoUploader
 
         private async void SetToggleCheck()
         {
-            ScheduledAction task = ScheduledActionService.Find(MyFlickr.RIT_NAME);
+            ScheduledAction task = ScheduledActionService.Find(RIT_NAME);
             if (task != null)
             {
                 if (task.IsScheduled)
@@ -196,14 +197,14 @@ namespace FlickrAutoUploader
         private void AddScheduledTask()
         {
             RemoveSchedule();
-            ResourceIntensiveTask resourceIntensiveTask = new ResourceIntensiveTask(MyFlickr.RIT_NAME);
+            ResourceIntensiveTask resourceIntensiveTask = new ResourceIntensiveTask(RIT_NAME);
             resourceIntensiveTask.Description = "Flickr Auto Uploader";
             ScheduledActionService.Add(resourceIntensiveTask);
         }
 
         private async void tgEnabled_Checked(object sender, RoutedEventArgs e)
         {
-            ScheduledAction task = ScheduledActionService.Find(MyFlickr.RIT_NAME);
+            ScheduledAction task = ScheduledActionService.Find(RIT_NAME);
             if ((task != null) && (task.IsScheduled))
             {
                 // Already enabled, nothing to do
@@ -247,9 +248,9 @@ namespace FlickrAutoUploader
 
         private void RemoveSchedule()
         {
-            if (ScheduledActionService.Find(MyFlickr.RIT_NAME) != null)
+            if (ScheduledActionService.Find(RIT_NAME) != null)
             {
-                ScheduledActionService.Remove(MyFlickr.RIT_NAME);
+                ScheduledActionService.Remove(RIT_NAME);
             }
         }
 
@@ -277,7 +278,7 @@ namespace FlickrAutoUploader
         private void Run_Click(object sender, RoutedEventArgs e)
         {
             if (Debugger.IsAttached)
-                ScheduledActionService.LaunchForTest(MyFlickr.RIT_NAME, TimeSpan.FromMilliseconds(5000));
+                ScheduledActionService.LaunchForTest(RIT_NAME, TimeSpan.FromMilliseconds(5000));
         }
 
         private void PrivacyPicker_SelectionChanged(object sender, SelectionChangedEventArgs e)
