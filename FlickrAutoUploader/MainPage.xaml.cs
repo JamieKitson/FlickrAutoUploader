@@ -51,8 +51,8 @@ namespace FlickrAutoUploader
             slLogLevel.Value = Settings.LogLevel;
             if (Debugger.IsAttached)
                 DebugPanel.Visibility = Visibility.Visible;
-            // Check for Lumia 1020 - RM-875, RM-876, RM-8777
-            UploadHiRes.Visibility = Regex.Match(DeviceStatus.DeviceName, "^RM-87[5-7]_").Success ? Visibility.Visible : Visibility.Collapsed;
+            // AFAIK high res images are only available on a Lumia 1020
+            UploadHiRes.Visibility = Settings.PhoneModelName == "Lumia 1020" ? Visibility.Visible : Visibility.Collapsed;
             SetToggleCheck();
             Photoset fa = Settings.FlickrAlbum;
             if (fa != null)

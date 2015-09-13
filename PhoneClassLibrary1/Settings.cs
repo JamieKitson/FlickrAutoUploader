@@ -1,4 +1,6 @@
 ﻿using FlickrNet;
+using Ailon.WP.Utils;
+using Microsoft.Phone.Info;
 using Microsoft.Phone.Shell;
 using System;
 using System.Collections.Generic;
@@ -175,10 +177,25 @@ namespace PhoneClassLibrary1
             set { SetSetting(PRIVACY, value); }
         }
 
-        private const string TAGS = "tags";
-        public static string Tags
+        // I don't know if this is worth caching, but it will be called every time that Tags is called.
+        private static string _PhoneModelName;
+        public static string PhoneModelName
         {
-            get { return GetSetting(TAGS, "wpautouploader"); }
+            get
+            {
+                if (string.IsNullOrEmpty(_PhoneModelName))
+                {
+                    CanonicalPhoneName phone = PhoneNameResolver.Resolve(DeviceStatus.DeviceManufacturer, DeviceStatus.DeviceName);
+                    _PhoneModelName = phone.CanonicalModel;
+                }
+                return _PhoneModelName;
+            }
+        }
+
+        private const string TAGS = "tags";
+        public static string Tags 
+        {
+            get { return GetSetting(TAGS, "wpautouploader," + PhoneModelName); }
             set { SetSetting(TAGS, value); }
         }
 
