@@ -117,6 +117,7 @@ namespace FlickrAutoUploader
 
         private async void WebBrowser1_Navigating(object sender, NavigatingEventArgs e)
         {
+            Settings.DebugLog("Navigating: " + e.Uri.AbsoluteUri);
             TextBox1.Text = e.Uri.AbsoluteUri;
             const string OAUTH_VERIFIER = "oauth_verifier";
             const string OAUTH_TOKEN = "oauth_token";
@@ -229,6 +230,7 @@ namespace FlickrAutoUploader
 
         private async void StartAuthProcess()
         {
+            Settings.DebugLog("StartAuthProcess");
             try
             {
                 Flickr f = MyFlickr.getFlickr();
