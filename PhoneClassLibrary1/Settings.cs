@@ -24,28 +24,35 @@ namespace PhoneClassLibrary1
 
         private static T GetSetting<T>(string name, T defVal)
         {
-            if (cache.ContainsKey(name))
-                return (T)cache[name];
             T val = defVal;
-            Mutex mutexFile = new Mutex(false, name);
-            mutexFile.WaitOne();
             try
             {
-                using (var store = IsolatedStorageFile.GetUserStoreForApplication())
+                if (cache.ContainsKey(name))
+                    return (T)cache[name];
+                Mutex mutexFile = new Mutex(false, name);
+                mutexFile.WaitOne();
+                try
                 {
-                    if (store.FileExists(name))
+                    using (var store = IsolatedStorageFile.GetUserStoreForApplication())
                     {
-                        XmlSerializer x = new XmlSerializer(typeof(T));
-                        using (var file = store.OpenFile(name, FileMode.Open))
-                            val = (T)x.Deserialize(file);
+                        if (store.FileExists(name))
+                        {
+                            XmlSerializer x = new XmlSerializer(typeof(T));
+                            using (var file = store.OpenFile(name, FileMode.Open))
+                                val = (T)x.Deserialize(file);
+                        }
                     }
                 }
+                finally
+                {
+                    mutexFile.ReleaseMutex();
+                }
+                cache[name] = val;
             }
-            finally
+            catch (Exception ex)
             {
-                mutexFile.ReleaseMutex();
+                DebugLog("Error getting setting " + name + " : " + ex.Message);
             }
-            cache[name] = val;
             return val;
         }
 
@@ -91,20 +98,16 @@ namespace PhoneClassLibrary1
         {
             get
             {
-                try
+                byte[] ProtectedSecretByte = GetSetting<byte[]>(SECRET, null);
+                if (ProtectedSecretByte == null)
                 {
-                    byte[] ProtectedSecretByte = GetSetting<byte[]>(SECRET, null);
-                    if (ProtectedSecretByte == null) // This means it's never been set
-                        return string.Empty;
-                    byte[] SecretByte = ProtectedData.Unprotect(ProtectedSecretByte, null);
-                    return Encoding.UTF8.GetString(SecretByte, 0, SecretByte.Length);
-                }
-                catch // Assume this exception means that we have a previously saved unprotected secret
-                {
+                    // Assume this means that we have a previously saved unprotected secret
                     string s = GetSetting(SECRET, "");
                     OAuthAccessTokenSecret = s; // Encrypt the secret
                     return s;
                 }
+                byte[] SecretByte = ProtectedData.Unprotect(ProtectedSecretByte, null);
+                return Encoding.UTF8.GetString(SecretByte, 0, SecretByte.Length);
             }
             set
             {
