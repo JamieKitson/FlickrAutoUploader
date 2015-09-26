@@ -103,7 +103,8 @@ namespace PhoneClassLibrary1
                 {
                     // Assume this means that we have a previously saved unprotected secret
                     string s = GetSetting(SECRET, "");
-                    OAuthAccessTokenSecret = s; // Encrypt the secret
+                    if (s != null)
+                        OAuthAccessTokenSecret = s; // Encrypt the secret
                     return s;
                 }
                 byte[] SecretByte = ProtectedData.Unprotect(ProtectedSecretByte, null);
