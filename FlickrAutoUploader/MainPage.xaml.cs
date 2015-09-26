@@ -220,7 +220,7 @@ namespace FlickrAutoUploader
             }
             else
             {
-                Settings.UnsetTokens();
+                // Don't bother unsetting tokens, Flickr might be down
                 tgEnabled.IsChecked = false;
                 AuthAttempts = 0;
                 StartAuthProcess();
