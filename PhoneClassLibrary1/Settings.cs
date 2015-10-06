@@ -103,7 +103,7 @@ namespace PhoneClassLibrary1
                 {
                     // Assume this means that we have a previously saved unprotected secret
                     string s = GetSetting(SECRET, "");
-                    if (s != null)
+                    if (s != null) // May have been cached as null above, 
                         OAuthAccessTokenSecret = s; // Encrypt the secret
                     return s;
                 }

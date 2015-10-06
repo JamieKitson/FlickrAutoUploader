@@ -96,7 +96,7 @@ namespace FlickrAutoUploader
                 else
                 {
                     Settings.DebugLog("Schedule was disabled.");
-                    RemoveSchedule();
+                    // RemoveSchedule();
                 }
             }
             tgEnabled.Checked += tgEnabled_Checked;
@@ -280,7 +280,13 @@ namespace FlickrAutoUploader
         private void Run_Click(object sender, RoutedEventArgs e)
         {
             if (Debugger.IsAttached)
-                ScheduledActionService.LaunchForTest(RIT_NAME, TimeSpan.FromMilliseconds(5000));
+            {
+                ScheduledAction task = ScheduledActionService.Find(RIT_NAME);
+                if ((task != null) && (task.IsEnabled))
+                    ScheduledActionService.LaunchForTest(RIT_NAME, TimeSpan.FromMilliseconds(5000));
+                else
+                    MessageBox.Show("Task is not enabled.");
+            }
         }
 
         private void PrivacyPicker_SelectionChanged(object sender, SelectionChangedEventArgs e)
