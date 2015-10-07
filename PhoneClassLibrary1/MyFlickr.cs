@@ -133,15 +133,19 @@ namespace PhoneClassLibrary1
                     {
                         Settings.DebugLog("Found picture " + p.Name);
                         Stream stream = await p.OpenStreamForReadAsync();
+                        Settings.DebugLog("Computing hash");
+                        /*
                         // MD5Managed hash = new MD5Managed();
                         SHA1Managed hash = new SHA1Managed();
-                        Settings.DebugLog("Computing hash");
                         hash.ComputeHash(stream);
                         // string hashTag = "file:md5sum=" + 
                         string hashTag = "file:sha1sig=" + BitConverter.ToString(hash.Hash).Replace("-", string.Empty);
+                        */
+                        string hashTag = "file:sha1sig=" + await ComputeHashAsync(stream);
                         string filenameTag = "file:name=" + p.Name;
                         Settings.DebugLog("Getting search options");
                         PhotoSearchOptions so = new PhotoSearchOptions("me", hashTag);
+                        // PhotoSearchOptions so = new PhotoSearchOptions("me", filenameTag);
                         Settings.DebugLog("Searching for duplicates");
                         PhotoCollection searchResult = await f.PhotosSearchAsync(so);
                         string PhotoID;
@@ -187,6 +191,29 @@ namespace PhoneClassLibrary1
                 Settings.DebugLog("Error uploading: " + ex.Message);
                 throw;
             }
+        }
+
+        // http://blog.cincura.net/233439-computehashasync-for-sha1/
+
+        public static async Task<string> ComputeHashAsync(Stream inputStream)
+        {
+            const int BufferSize = 4096;
+            SHA1Managed sha1 = new SHA1Managed();
+            sha1.Initialize(); // Is this really necessary?
+
+            var buffer = new byte[BufferSize];
+            var streamLength = inputStream.Length;
+            while (true)
+            {
+                var read = await inputStream.ReadAsync(buffer, 0, BufferSize).ConfigureAwait(false);
+                if (inputStream.Position == streamLength)
+                {
+                    sha1.TransformFinalBlock(buffer, 0, read);
+                    break;
+                }
+                sha1.TransformBlock(buffer, 0, read, default(byte[]), default(int));
+            }
+            return BitConverter.ToString(sha1.Hash).Replace("-", string.Empty);
         }
 
         // The following code is taken from versions 3 and 4 of FlickrNet in mid 2015 and adapted for the low memory limit of WP background tasks to use FileStreams and HttpWebRequest.AllowWriteStreamBuffering = false
