@@ -70,7 +70,6 @@ namespace PhoneClassLibrary1
             Settings.DebugLog("Checked albums: " + string.Join(", ", checkedAlbums));
 
             // Cache setting values
-            DateTime StartFrom = Settings.StartFrom;
             bool UploadVideos = Settings.UploadVideos;
             bool UploadHiRes = Settings.UploadHiRes;
             Settings.DebugLog("Uploading videos: " + UploadVideos + ", uploading high res: " + UploadHiRes);
@@ -78,21 +77,21 @@ namespace PhoneClassLibrary1
             List<StorageFile> pics = new List<StorageFile>();
             IReadOnlyList<StorageFolder> albums = await KnownFolders.PicturesLibrary.GetFoldersAsync();
 
-            DateTime BatchEndDate = StartFrom;
+            DateTime BatchStartDate = Settings.StartFrom;
+            TimeSpan BatchSpan = new TimeSpan(BATCH_SPAN_DAYS, 0, 0, 0);
 
-            while ((pics.Count < BATCH_SIZE) && (BatchEndDate < DateTime.Now))
+            while ((pics.Count < BATCH_SIZE) && (BatchStartDate < DateTime.Now))
             {
-                BatchEndDate += new TimeSpan(BATCH_SPAN_DAYS, 0, 0, 0);
                 foreach (StorageFolder album in albums.Where(folder => checkedAlbums.Contains(folder.Name)))
                 {
-                    Settings.DebugLog("Found album: " + album.Name);
+                    Settings.DebugLog("Found album: " + album.Name + ". Starting at " + BatchStartDate);
                     IReadOnlyList<StorageFile> files = await album.GetFilesAsync();
                     pics.AddRange(files
                         .Where(file =>
                         {
                             string ext = Path.GetExtension(file.Name).ToLower();
-                            // Get files more recent than the last uploaded, don't get DNG files, don't get videos unless we're uploading videos
-                            return (file.DateCreated > StartFrom) && (file.DateCreated < BatchEndDate) && (UPLOADABLE_IMAGE_EXTS.Contains(ext) || (ext == ".mp4" && UploadVideos));
+                            // Get files within this batch date, don't get DNG files, don't get videos unless we're uploading videos
+                            return (file.DateCreated > BatchStartDate) && (file.DateCreated <= (BatchStartDate + BatchSpan)) && (UPLOADABLE_IMAGE_EXTS.Contains(ext) || (ext == ".mp4" && UploadVideos));
                         })
                         .GroupBy(
                         // Group high/low res twins together. We need to group by name in case some photos are missing one of the hi/low res pair
@@ -102,7 +101,8 @@ namespace PhoneClassLibrary1
                             group => group.Where(file => (group.Count() == 1) || (file.Name.Contains(HIGHRES) == UploadHiRes)).ToList()[0]
                         ));
                 }
-                Settings.DebugLog("Got total " + pics.Count() + " taken between " + StartFrom + " and " + BatchEndDate);
+                BatchStartDate += BatchSpan;
+                Settings.DebugLog("Got total " + pics.Count() + " files. Ending at " + BatchStartDate);
             }
             //Settings.DebugLog("Got batch of " + pics.Count() + " pics taken since " + Settings.StartFrom);
             return pics.OrderBy(file => file.DateCreated);
@@ -184,7 +184,7 @@ namespace PhoneClassLibrary1
                         Settings.StartFrom = p.DateCreated.DateTime;
                         Settings.UploadsFailed = 0;
                     }
-                } while (pics.Count() > 0);
+                } while (pics.Count() >= BATCH_SIZE);
             }
             catch (Exception ex)
             {
@@ -199,10 +199,10 @@ namespace PhoneClassLibrary1
         {
             const int BufferSize = 4096;
             SHA1Managed sha1 = new SHA1Managed();
-            sha1.Initialize(); // Is this really necessary?
 
             var buffer = new byte[BufferSize];
             var streamLength = inputStream.Length;
+
             while (true)
             {
                 var read = await inputStream.ReadAsync(buffer, 0, BufferSize).ConfigureAwait(false);
