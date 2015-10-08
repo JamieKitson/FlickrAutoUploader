@@ -63,6 +63,7 @@ namespace PhoneClassLibrary1
         const string HIGHRES = "__highres";
         const string UPLOADABLE_IMAGE_EXTS = ".jpg .png .gif .tiff";
 
+        // Batch process files. #50
         private static async Task<IOrderedEnumerable<StorageFile>> GetFileBatch()
         {
             Flickr f = MyFlickr.getFlickr();
@@ -193,6 +194,7 @@ namespace PhoneClassLibrary1
             }
         }
 
+        // Compute hash bit by bit to avoid over using resources #49
         // http://blog.cincura.net/233439-computehashasync-for-sha1/
 
         public static async Task<string> ComputeHashAsync(Stream inputStream)

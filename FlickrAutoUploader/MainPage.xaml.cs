@@ -37,7 +37,7 @@ namespace FlickrAutoUploader
         const string CALL_BACK = "http://kitten-x.com";
         const string RIT_NAME = "FlickrAutoUploader";
         OAuthRequestToken requestToken;
-        int AuthAttempts;
+        int AuthAttempts = 0;
 
         public MainPage()
         {
@@ -102,7 +102,7 @@ namespace FlickrAutoUploader
             tgEnabled.Checked += tgEnabled_Checked;
             if (NetworkInterface.GetIsNetworkAvailable() && Settings.TokensSet())
             {
-                if (await MyFlickr.Test())
+                if (await TestFlickrAuth())
                     LoadFlickrAlbums();
                 else
                     tgEnabled.IsChecked = false;
@@ -215,7 +215,7 @@ namespace FlickrAutoUploader
                 MessageBox.Show("Please re-try enabling when you have an internet connection available.");
                 tgEnabled.IsChecked = false;
             }
-            else if (await MyFlickr.Test())
+            else if (Settings.TokensSet() && await TestFlickrAuth())
             {
                 AddScheduledTask();
             }
@@ -469,6 +469,15 @@ namespace FlickrAutoUploader
         private void UploadHiRes_Checked(object sender, RoutedEventArgs e)
         {
             Settings.UploadHiRes = UploadHiRes.IsChecked.HasValue && UploadHiRes.IsChecked.Value;
+        }
+
+        private async Task<bool> TestFlickrAuth()
+        {
+            if (await MyFlickr.Test())
+                return true;
+            if (MyFlickr.lastError != null)
+                MessageBox.Show("Flickr Authentication Error: " + MyFlickr.lastError.Message + ". Please try re-enabling the app to re-authenticate.");
+            return false;
         }
 
    }
