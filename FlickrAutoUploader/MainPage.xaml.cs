@@ -231,20 +231,28 @@ namespace FlickrAutoUploader
         private async void StartAuthProcess()
         {
             Settings.DebugLog("StartAuthProcess");
+            ProgressBar1.Visibility = Visibility.Visible;
             try
             {
                 Flickr f = MyFlickr.getFlickr();
                 requestToken = await f.OAuthRequestTokenAsync(CALL_BACK);
-                if (requestToken != null)
-                {
-                    string url = f.OAuthCalculateAuthorizationUrl(requestToken.Token, AuthLevel.Write);
-                    WebBrowser1.Visibility = Visibility.Visible;
-                    WebBrowser1.Navigate(new Uri(url));
-                }
+                if (requestToken == null)
+                    throw new Exception("Null token returned.");
+                string url = f.OAuthCalculateAuthorizationUrl(requestToken.Token, AuthLevel.Write);
+                Settings.DebugLog("StartAuthProcess: Showing browser");
+                WebBrowser1.Visibility = Visibility.Visible;
+                Settings.DebugLog("StartAuthProcess: Navigating to url");
+                WebBrowser1.Navigate(new Uri(url));
+                Settings.DebugLog("StartAuthProcess: Done");
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error: " + ex.Message);
+                Settings.ErrorLog("Authentication process failed: " + ex.Message);
+                // MessageBox.Show("Authentication process failed: " + ex.Message);
+            }
+            finally
+            {
+                ProgressBar1.Visibility = Visibility.Collapsed;
             }
         }
 
