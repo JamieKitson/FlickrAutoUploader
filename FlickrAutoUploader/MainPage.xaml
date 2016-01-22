@@ -26,7 +26,8 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Text="Flickr Auto Uploader" Style="{StaticResource PhoneTextNormalStyle}" Margin="20,17,0,20" />
+        <TextBlock Text="Flickr Auto Uploader" Style="{StaticResource PhoneTextNormalStyle}" Margin="20,17,0,20" Grid.Row="0"/>
+        <ProgressBar HorizontalAlignment="Stretch" Height="15" VerticalAlignment="Top" IsIndeterminate="True" Grid.Row="0" Name="ProgressBar1" Visibility="Collapsed"/>
 
         <ScrollViewer Grid.Row="1" Name="ScrollPanel">
             <StackPanel x:Name="ContentPanel" Margin="10,0,0,0">
