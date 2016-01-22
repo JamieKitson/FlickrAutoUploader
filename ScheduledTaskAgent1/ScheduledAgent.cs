@@ -53,7 +53,7 @@ namespace ScheduledTaskAgent1
             {
                 Settings.TestsFailed = 0;
                 PackageVersion v = Package.Current.Id.Version;
-                Settings.DebugLog("Test succeeded, starting upload. Version " + v.Major + "." + v.Minor + ". Phone: " + Settings.PhoneModelName);
+                Settings.DebugLog("Test succeeded, starting upload. Version " + v.Major + "." + v.Minor);
                 try
                 {
                     await MyFlickr.Upload();
