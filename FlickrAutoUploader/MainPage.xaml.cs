@@ -168,11 +168,11 @@ namespace FlickrAutoUploader
             PhoneAlbumList.Children.Clear();
             IList<string> checkedPhoneAlbums = Settings.SelectedPhoneAlbums;
             IReadOnlyList<StorageFolder> allAlbums = await KnownFolders.PicturesLibrary.GetFoldersAsync();
-            foreach (StorageFolder album in allAlbums)
+            foreach (string album in allAlbums.Select(a => a.Name).Distinct())
             {
                 CheckBox cb = new CheckBox();
-                cb.Content = album.Name;
-                cb.IsChecked = checkedPhoneAlbums.Contains(album.Name);
+                cb.Content = album;
+                cb.IsChecked = checkedPhoneAlbums.Contains(album);
                 cb.Checked += PhoneAlbum_Checked;
                 cb.Unchecked += PhoneAlbum_Unchecked;
                 cb.Margin = new Thickness(0, 0, 0, -10);
