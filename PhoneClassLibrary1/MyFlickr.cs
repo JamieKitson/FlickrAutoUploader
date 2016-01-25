@@ -134,7 +134,7 @@ namespace PhoneClassLibrary1
                     {
                         Settings.DebugLog("Found picture " + p.Name);
                         Stream stream = await p.OpenStreamForReadAsync();
-                        Settings.DebugLog("Computing hash");
+                        Settings.DebugLog("File size: " + (stream.Length / 1024) + "KB, Computing hash");
                         /*
                         // MD5Managed hash = new MD5Managed();
                         SHA1Managed hash = new SHA1Managed();
